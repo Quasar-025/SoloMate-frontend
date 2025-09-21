@@ -157,13 +157,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFFE8F5E8),
+        backgroundColor: Color(0xFFFFFFF3),
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE8F5E8),
+      backgroundColor: const Color(0xFFFFFFF3),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadData,
@@ -329,18 +329,18 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 16),
         Expanded(
           child: NeuContainer(
-            color: const Color(0xFF98FB98),
+            color: const Color(0xFFFFC0E8),
             borderColor: Colors.black,
             borderWidth: 3,
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              height: 140,
+              height: 154,
               padding: const EdgeInsets.all(16),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Quest time',
+                    'Quest Status',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -363,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildChecklist() {
     return NeuContainer(
-      color: const Color(0xFFFFFF99),
+      color: const Color(0xFFDCFD00),
       borderColor: Colors.black,
       borderWidth: 3,
       borderRadius: BorderRadius.circular(16),
@@ -417,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(
             isCompleted ? Icons.check_circle : Icons.circle_outlined,
-            color: isCompleted ? Colors.green : Colors.grey,
+            color: isCompleted ? Colors.black : Colors.grey,
             size: 20,
           ),
           const SizedBox(width: 8),
@@ -438,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildItinerary() {
     return NeuContainer(
-      color: Colors.white,
+      color: const Color(0xFFC5C6FF),
       borderColor: Colors.black,
       borderWidth: 3,
       borderRadius: BorderRadius.circular(16),
@@ -475,9 +475,50 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildItineraryItem('Local Walking Tour', 'Laxman Jhula Area • 8 min walk', '9:00 AM', 'Start Navigation', Colors.green),
-            _buildItineraryItem('Local Walking Tour', 'Partly cloudy', '2:00 PM', 'Start Navigation', Colors.purple),
-            _buildItineraryItem('Local Walking Tour', 'Laxman Jhula Area • 8 min walk', '6:00 PM', 'Start Navigation', Colors.orange),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              margin: const EdgeInsets.only(bottom: 8),
+              child: _buildItineraryItem(
+                'Local Walking Tour', 
+                'Laxman Jhula Area • 8 min walk', 
+                '9:00 AM', 
+                'Start Navigation', 
+                Colors.white
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              margin: const EdgeInsets.only(bottom: 8),
+              child: _buildItineraryItem(
+                'Local Walking Tour', 
+                'Partly cloudy', 
+                '2:00 PM', 
+                'Start Navigation', 
+                Colors.white
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: _buildItineraryItem(
+                'Local Walking Tour', 
+                'Laxman Jhula Area • 8 min walk', 
+                '6:00 PM', 
+                'Start Navigation', 
+                Colors.white
+              ),
+            ),
           ],
         ),
       ),
@@ -486,13 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildItineraryItem(String title, String subtitle, String time, String action, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        border: Border.all(color: Colors.black, width: 2),
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
         children: [
           Expanded(
@@ -526,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFFAA3DB), // Changed to pink color
               border: Border.all(color: Colors.black, width: 2),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -534,7 +569,11 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {},
               child: Text(
                 action,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 10, 
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black, // Added to ensure text remains visible on pink background
+                ),
               ),
             ),
           ),
@@ -545,7 +584,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildNearbyExplore() {
     return NeuContainer(
-      color: Colors.white,
+      color: const Color(0xFFC0F7FE),
       borderColor: Colors.black,
       borderWidth: 3,
       borderRadius: BorderRadius.circular(16),
@@ -609,6 +648,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
+        color: Colors.white, // Added white background
         border: Border.all(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -654,7 +694,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFC0F7FE), // Changed button color
               border: Border.all(color: Colors.black, width: 2),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -673,7 +713,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMemoriesJournal() {
     return NeuContainer(
-      color: const Color(0xFFE6E6FA),
+      color: const Color(0xFFFDEABF),
       borderColor: Colors.black,
       borderWidth: 3,
       borderRadius: BorderRadius.circular(16),
