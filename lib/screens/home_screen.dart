@@ -584,6 +584,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
+        color: Colors.white, // Added white background
         border: Border.all(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -629,7 +630,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFC0F7FE), // Changed button color
               border: Border.all(color: Colors.black, width: 2),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -648,7 +649,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMemoriesJournal() {
     return NeuContainer(
-      color: const Color(0xFFE6E6FA),
+      color: const Color(0xFFFDEABF),
       borderColor: Colors.black,
       borderWidth: 3,
       borderRadius: BorderRadius.circular(16),
