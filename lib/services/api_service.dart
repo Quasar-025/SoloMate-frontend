@@ -109,6 +109,22 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  // Weather API
+  Future<Map<String, dynamic>> getCurrentWeather(double lat, double lng) async {
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    if (apiKey == null) throw Exception('Google Maps API Key not found');
+
+    final uri = Uri.https('weather.googleapis.com', '/v1/currentConditions:lookup', {
+      'key': apiKey,
+      'location.latitude': lat.toString(),
+      'location.longitude': lng.toString(),
+      'languageCode': 'en',
+    });
+
+    final response = await http.get(uri, headers: {'Content-Type': 'application/json'});
+    return _handleResponse(response);
+  }
+
   // Safety API
   Future<Map<String, dynamic>> getCitySafetyIndex(String cityId) async {
     final response = await http.get(
@@ -160,3 +176,4 @@ class ApiService {
     }
   }
 }
+

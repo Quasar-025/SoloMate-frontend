@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../screens/profile_screen.dart';
@@ -18,6 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _userInfo;
   Map<String, dynamic>? _userStats;
   List<dynamic> _nearbyQuests = [];
+  Map<String, dynamic>? _weatherData;
+  String? _locationName;
   bool _isLoading = true;
   int _selectedIndex = 0;
 
@@ -46,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Load additional data after the basic UI is shown
       _loadAdditionalData();
+      _loadWeatherData();
       
     } catch (e) {
       setState(() => _isLoading = false);
@@ -88,6 +93,59 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadWeatherData() async {
+    try {
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied, we cannot request permissions.');
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      print('Current position: ${position.latitude}, ${position.longitude}');
+
+      // Fetch location name
+      List<geocoding.Placemark> placemarks = await geocoding.placemarkFromCoordinates(position.latitude, position.longitude);
+      String locationName = '...';
+      if (placemarks.isNotEmpty) {
+        locationName = placemarks.first.locality ?? placemarks.first.administrativeArea ?? '...';
+      }
+
+      final weatherData = await _apiService.getCurrentWeather(position.latitude, position.longitude);
+      
+      if (mounted) {
+        setState(() {
+          _weatherData = weatherData;
+          _locationName = locationName;
+        });
+      }
+    } catch (e) {
+      print('Error loading weather data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not fetch weather. ${e.toString()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _logout() async {
     await _authService.logout();
     if (mounted) {
@@ -107,25 +165,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFE8F5E8),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 20),
-              _buildWeatherCard(),
-              const SizedBox(height: 20),
-              _buildChecklist(),
-              const SizedBox(height: 20),
-              _buildItinerary(),
-              const SizedBox(height: 20),
-              _buildNearbyExplore(),
-              const SizedBox(height: 20),
-              _buildMemoriesJournal(),
-              const SizedBox(height: 20),
-              _buildSafetySnapshot(),
-            ],
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 20),
+                _buildWeatherCard(),
+                const SizedBox(height: 20),
+                _buildChecklist(),
+                const SizedBox(height: 20),
+                _buildItinerary(),
+                const SizedBox(height: 20),
+                _buildNearbyExplore(),
+                const SizedBox(height: 20),
+                _buildMemoriesJournal(),
+                const SizedBox(height: 20),
+                _buildSafetySnapshot(),
+              ],
+            ),
           ),
         ),
       ),
@@ -212,6 +273,9 @@ class _HomeScreenState extends State<HomeScreen> {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     
     final formattedDate = '${weekdays[now.weekday - 1]}, ${now.day}\n${months[now.month - 1]}';
+    final temperature = _weatherData?['temperature']?['degrees']?.round() ?? '--';
+    final condition = _weatherData?['weatherCondition']?['description']?['text'] ?? 'Loading...';
+    final location = _locationName ?? '...';
 
     return Row(
       children: [
@@ -226,18 +290,18 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
                       Text(
-                        '27°',
-                        style: TextStyle(
+                        '$temperature°',
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.wb_sunny, color: Colors.yellow, size: 24),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.wb_sunny, color: Colors.yellow, size: 24),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -250,9 +314,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Goa, Konkan',
-                    style: TextStyle(
+                  Text(
+                    location,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Colors.white70,
                     ),
@@ -884,3 +948,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

@@ -100,7 +100,9 @@ class AuthService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to get user info');
+      final errorBody = jsonDecode(response.body);
+      final errorMessage = errorBody['detail'] ?? 'Failed to get user info';
+      throw Exception('Error ${response.statusCode}: $errorMessage');
     }
   }
 

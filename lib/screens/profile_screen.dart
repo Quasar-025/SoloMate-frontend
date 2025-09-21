@@ -29,34 +29,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserData() async {
     try {
-      // Use the auth service for profile data since the API endpoints might not be ready
-      final profile = await _authService.getCurrentUser();
+      // Fetch all user data from the single /auth/me endpoint
+      final userData = await _authService.getCurrentUser();
       
-      // Mock data for stats until backend is ready
-      final stats = {
-        'completed_quests': 12,
-        'cities_visited': 3,
-        'total_xp': profile['total_xp'] ?? 1250,
-        'level': profile['level'] ?? 5,
-      };
-      
-      setState(() {
-        _userProfile = profile;
-        _userStats = stats;
-        _userBadges = []; // Empty for now
-        _friends = []; // Empty for now
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _userProfile = userData;
+          // Extract stats from the same user data object
+          _userStats = {
+            'completed_quests': 0, // Not in /auth/me response, default to 0
+            'cities_visited': 0, // Not in /auth/me response, default to 0
+            'total_xp': userData['total_xp'] ?? 0,
+            'level': userData['level'] ?? 1,
+          };
+          _userBadges = []; // Not in /auth/me response
+          _friends = []; // Not in /auth/me response
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Using offline data: ${e.toString()}'),
-            backgroundColor: Colors.orange,
+            content: Text('Failed to load profile: ${e.toString()}'),
+            backgroundColor: Colors.red,
           ),
         );
-        // Set mock data if API fails
+        // Fallback to mock data if API fails
         setState(() {
           _userProfile = {
             'username': 'User',
