@@ -224,7 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 '$greeting, ${_userInfo?['username'] ?? 'User'}',
                 style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'gilroy',
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -234,6 +235,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
+                  fontFamily: 'gilroy',
+                  fontWeight: FontWeight.w300,
                 ),
               ),
             ],
@@ -296,8 +299,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         '$temperature°',
                         style: const TextStyle(
                           fontSize: 32,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
+                          fontFamily: 'gilroy',
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -310,7 +314,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.white,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'gilroy',
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -319,6 +324,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.white70,
+                      fontFamily: 'gilroy',
+                      fontWeight: FontWeight.w300,
                     ),
                   ),
                 ],
@@ -343,8 +350,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Quest Status',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: Colors.black,
+                      fontFamily: 'gilroy',
                     ),
                   ),
                   Spacer(),
@@ -379,7 +387,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   "Today's Checklist",
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'gilroy',
                   ),
                 ),
                 Container(
@@ -393,7 +402,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {},
                     child: const Text(
                       'View Plans',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.w300,
+                        fontFamily: 'gilroy',
+                      ),
                     ),
                   ),
                 ),
@@ -428,6 +441,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 14,
                 decoration: isCompleted ? TextDecoration.lineThrough : null,
                 color: isCompleted ? Colors.grey : Colors.black,
+                fontFamily: 'gilroy',
+                fontWeight: FontWeight.w300,
               ),
             ),
           ),
@@ -454,7 +469,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   "Today's Itinerary",
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'gilroy',
                   ),
                 ),
                 Container(
@@ -468,7 +484,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {},
                     child: const Text(
                       'View Itinerary',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.w300,
+                        fontFamily: 'gilroy',
+                      ),
                     ),
                   ),
                 ),
@@ -538,7 +558,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   title,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'gilroy',
                   ),
                 ),
                 Text(
@@ -546,13 +567,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
+                    fontFamily: 'gilroy',
+                    fontWeight: FontWeight.w300,
                   ),
                 ),
                 Text(
                   time,
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w300,
+                    fontFamily: 'gilroy',
                   ),
                 ),
               ],
@@ -561,7 +585,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFFAA3DB), // Changed to pink color
+              color: const Color(0xFFFAA3DB),
               border: Border.all(color: Colors.black, width: 2),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -571,8 +595,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 action,
                 style: const TextStyle(
                   fontSize: 10, 
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black, // Added to ensure text remains visible on pink background
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black,
+                  fontFamily: 'gilroy',
                 ),
               ),
             ),
@@ -597,7 +622,8 @@ class _HomeScreenState extends State<HomeScreen> {
               'Nearby & Explore',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'gilroy',
               ),
             ),
             const SizedBox(height: 12),
@@ -635,7 +661,8 @@ class _HomeScreenState extends State<HomeScreen> {
         style: TextStyle(
           color: isSelected ? Colors.white : Colors.black,
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w300,
+          fontFamily: 'gilroy',
         ),
       ),
     );
@@ -648,7 +675,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white, // Added white background
+        color: Colors.white,
         border: Border.all(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -662,7 +689,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   name,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'gilroy',
                   ),
                 ),
                 Text(
@@ -670,6 +698,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
+                    fontFamily: 'gilroy',
+                    fontWeight: FontWeight.w300,
                   ),
                 ),
                 Container(
@@ -684,7 +714,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 10,
                       color: statusColor,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'gilroy',
                     ),
                   ),
                 ),
@@ -694,7 +725,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFC0F7FE), // Changed button color
+              color: const Color(0xFFC0F7FE),
               border: Border.all(color: Colors.black, width: 2),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -702,7 +733,11 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {},
               child: Text(
                 action,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 10, 
+                  fontWeight: FontWeight.w300,
+                  fontFamily: 'gilroy',
+                ),
               ),
             ),
           ),
@@ -726,7 +761,8 @@ class _HomeScreenState extends State<HomeScreen> {
               'Memories & Journal',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'gilroy',
               ),
             ),
             const SizedBox(height: 12),
@@ -736,6 +772,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
                 color: Colors.grey,
+                fontFamily: 'gilroy',
+                fontWeight: FontWeight.w300,
               ),
             ),
             const SizedBox(height: 8),
@@ -748,10 +786,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: Border.all(color: Colors.black, width: 2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text('Share your thoughts here...'),
+              child: const Text(
+                'Share your thoughts here...',
+                style: TextStyle(
+                  fontFamily: 'gilroy',
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
             ),
             const SizedBox(height: 12),
-            const Text('0/1000'),
+            const Text(
+              '0/1000',
+              style: TextStyle(
+                fontFamily: 'gilroy',
+                fontWeight: FontWeight.w300,
+              ),
+            ),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -810,8 +860,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       'SAVE',
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
+                        fontFamily: 'gilroy',
                       ),
                     ),
                   ),
@@ -842,7 +893,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Safety Snapshot',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'gilroy',
                   ),
                 ),
                 Container(
@@ -856,7 +908,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'gilroy',
                     ),
                   ),
                 ),
@@ -871,7 +924,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Text(
                         'Feeling Unsafe? Click\nSOS Track & Report!',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'gilroy',
+                          fontWeight: FontWeight.w300,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       NeuContainer(
@@ -889,8 +946,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               'SOS',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 16,
+                                fontFamily: 'gilroy',
                               ),
                             ),
                           ),
@@ -908,7 +966,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Live Location',
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'gilroy',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -924,7 +983,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: Text(
                               'Live location automatically shows with nearest POLICE station On click of SOS BUTTON',
-                              style: TextStyle(fontSize: 10, color: Colors.red),
+                              style: TextStyle(
+                                fontSize: 10, 
+                                color: Colors.red,
+                                fontFamily: 'gilroy',
+                                fontWeight: FontWeight.w300,
+                              ),
                             ),
                           ),
                         ],
@@ -946,7 +1010,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(name, style: const TextStyle(fontSize: 12)),
+          Text(
+            name, 
+            style: const TextStyle(
+              fontSize: 12,
+              fontFamily: 'gilroy',
+              fontWeight: FontWeight.w300,
+            ),
+          ),
           Switch(
             value: isEnabled,
             onChanged: (value) {},

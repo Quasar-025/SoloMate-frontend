@@ -32,26 +32,25 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Trove',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Poppins',
-        scaffoldBackgroundColor: const Color(0xFFF0F2F5),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.black, width: 2),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.black, width: 2),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.blue, width: 2),
-          ),
+        fontFamily: 'gilroy',
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          displayMedium: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          displaySmall: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          headlineLarge: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w700),
+          headlineMedium: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w700),
+          headlineSmall: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w700),
+          titleLarge: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w700),
+          titleMedium: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          titleSmall: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          bodyLarge: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          bodyMedium: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          bodySmall: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          labelLarge: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w700),
+          labelMedium: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
+          labelSmall: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
         ),
       ),
       // Always start with login screen to avoid auth check issues during development

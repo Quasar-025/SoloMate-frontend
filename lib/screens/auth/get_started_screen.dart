@@ -39,8 +39,9 @@ class GetStartedScreen extends StatelessWidget {
                             'TROVE',
                             style: TextStyle(
                               fontSize: 32,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               color: Colors.black,
+                              fontFamily: 'gilroy',
                             ),
                           ),
                           SizedBox(height: 4),
@@ -49,6 +50,8 @@ class GetStartedScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.black54,
+                              fontFamily: 'gilroy',
+                              fontWeight: FontWeight.w300,
                             ),
                           ),
                         ],
@@ -69,8 +72,9 @@ class GetStartedScreen extends StatelessWidget {
                       'Get Started',
                       style: TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: Colors.black,
+                        fontFamily: 'gilroy',
                       ),
                     ),
                   ),

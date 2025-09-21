@@ -1,5 +1,5 @@
-name: solomate_frontend
-description: "A new Flutter project."
+name: Trove
+description: "Your next adventure awaits."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -63,6 +63,14 @@ flutter:
     - .env
     - assets/images/
     - assets/gifs/
+  fonts:
+    - family: gilroy
+      fonts:
+        - asset: fonts/Gilroy-Bold.ttf
+          weight: 700
+        - asset: fonts/Gilroy-Light.ttf
+          weight: 300
+        
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

@@ -124,7 +124,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'Profile',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'gilroy',
             ),
           ),
           PopupMenuButton<String>(
@@ -136,7 +137,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             itemBuilder: (BuildContext context) => [
               const PopupMenuItem<String>(
                 value: 'logout',
-                child: Text('Logout'),
+                child: Text(
+                  'Logout',
+                  style: TextStyle(fontFamily: 'gilroy'),
+                ),
               ),
             ],
             child: const Icon(Icons.more_vert, size: 24),
@@ -225,8 +229,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _userProfile?['username'] ?? 'Unknown User',
                         style: const TextStyle(
                           fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
+                          fontFamily: 'gilroy',
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -254,6 +259,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.white70,
+                    fontFamily: 'gilroy',
+                    fontWeight: FontWeight.w300,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -264,6 +271,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white70,
+                    fontFamily: 'gilroy',
+                    fontWeight: FontWeight.w300,
                   ),
                 ),
               ],
@@ -318,8 +327,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               value,
               style: const TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: Colors.black,
+                fontFamily: 'gilroy',
               ),
             ),
             const SizedBox(height: 4),
@@ -328,6 +338,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
+                fontFamily: 'gilroy',
+                fontWeight: FontWeight.w300,
               ),
               textAlign: TextAlign.center,
             ),
@@ -361,8 +373,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _isFollowing ? 'Following' : 'Edit Profile',
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           color: Colors.black,
+                          fontFamily: 'gilroy',
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -435,8 +448,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: isSelected ? Colors.black : Colors.grey,
+            fontFamily: 'gilroy',
           ),
         ),
         if (isSelected)
@@ -481,8 +495,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               locations[index % locations.length],
               style: const TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: Colors.black,
+                fontFamily: 'gilroy',
               ),
             ),
           ],
