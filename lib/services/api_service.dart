@@ -19,15 +19,24 @@ class ApiService {
   // Users API
   Future<Map<String, dynamic>> getUserProfile() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/users/profile'),
+      Uri.parse('$baseUrl/users/profile'),
       headers: _headers,
+    );
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> userData) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/profile'),
+      headers: _headers,
+      body: jsonEncode(userData),
     );
     return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> getUserStats() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/users/stats'),
+      Uri.parse('$baseUrl/users/stats'),
       headers: _headers,
     );
     return _handleResponse(response);
@@ -35,7 +44,7 @@ class ApiService {
 
   Future<List<dynamic>> getUserBadges() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/users/badges'),
+      Uri.parse('$baseUrl/users/badges'),
       headers: _headers,
     );
     return _handleResponse(response);
@@ -43,7 +52,15 @@ class ApiService {
 
   Future<List<dynamic>> getFriends() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/users/friends'),
+      Uri.parse('$baseUrl/users/friends'),
+      headers: _headers,
+    );
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> addFriend(String walletAddress) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/users/add-friend/$walletAddress'),
       headers: _headers,
     );
     return _handleResponse(response);

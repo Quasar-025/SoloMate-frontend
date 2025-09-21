@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,27 +29,62 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     try {
+      // First check if user is authenticated
+      if (!_authService.isAuthenticated) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
+        return;
+      }
+
       final userInfo = await _authService.getCurrentUser();
-      // Comment out API calls that might fail during development
-      // final userStats = await _apiService.getUserStats();
-      // final nearbyQuests = await _apiService.getNearbyQuests();
       
       setState(() {
         _userInfo = userInfo;
-        // _userStats = userStats;
-        // _nearbyQuests = nearbyQuests;
         _isLoading = false;
       });
+
+      // Load additional data after the basic UI is shown
+      _loadAdditionalData();
+      
     } catch (e) {
       setState(() => _isLoading = false);
+      print('Error loading user data: $e');
+      
+      // If there's an auth error, redirect to login
+      if (e.toString().contains('401') || e.toString().contains('authentication')) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
+        return;
+      }
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to load data: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text('Welcome! Some features may be limited.'),
+            backgroundColor: Colors.orange,
           ),
         );
       }
+    }
+  }
+
+  Future<void> _loadAdditionalData() async {
+    try {
+      // Load user stats and other data in background
+      final userStats = await _apiService.getUserStats();
+      final nearbyQuests = await _apiService.getNearbyQuests();
+      
+      if (mounted) {
+        setState(() {
+          _userStats = userStats;
+          _nearbyQuests = nearbyQuests;
+        });
+      }
+    } catch (e) {
+      print('Error loading additional data: $e');
+      // Don't show error for additional data - just log it
     }
   }
 
@@ -80,8 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               _buildWeatherCard(),
               const SizedBox(height: 20),
-              _buildQuestCard(),
-              const SizedBox(height: 20),
               _buildChecklist(),
               const SizedBox(height: 20),
               _buildItinerary(),
@@ -100,41 +134,72 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader() {
+    // Determine greeting based on time of day
+    final hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 12) {
+      greeting = 'Good Morning';
+    } else if (hour < 17) {
+      greeting = 'Good Afternoon';
+    } else {
+      greeting = 'Good Evening';
+    }
+    
+    // Get email and format it to prevent overflow
+    final email = _userInfo?['email'] as String? ?? 'user@example.com';
+    final formattedEmail = email.contains('@') 
+        ? email.substring(0, email.indexOf('@')) + '...'
+        : email;
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Good Morning, ${_userInfo?['username'] ?? 'User'}',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$greeting, ${_userInfo?['username'] ?? 'User'}',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-            ),
-            const Text(
-              'Ready for your adventure?',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
+              const Text(
+                'Ready for your adventure?',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        NeuContainer(
-          color: Colors.white,
-          borderColor: Colors.black,
-          borderWidth: 2,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: const BoxDecoration(
-              color: Color(0xFF4ECDC4),
-              borderRadius: BorderRadius.all(Radius.circular(10)),
+        const SizedBox(width: 16),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+          },
+          child: NeuContainer(
+            color: Colors.white,
+            borderColor: Colors.black,
+            borderWidth: 2,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: Color(0xFF4ECDC4),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+              child: const Icon(Icons.person, color: Colors.white),
             ),
-            child: const Icon(Icons.person, color: Colors.white),
           ),
         ),
       ],
@@ -142,6 +207,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWeatherCard() {
+    final now = DateTime.now();
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    final formattedDate = '${weekdays[now.weekday - 1]}, ${now.day}\n${months[now.month - 1]}';
+
     return Row(
       children: [
         Expanded(
@@ -170,9 +241,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Tuesday, 23\nDecember',
-                    style: TextStyle(
+                  Text(
+                    formattedDate,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -224,48 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuestCard() {
-    return NeuContainer(
-      color: Colors.white,
-      borderColor: Colors.black,
-      borderWidth: 3,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: double.infinity,
-        height: 120,
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFFE4B5), Color(0xFFFFDAB9)],
-          ),
-          borderRadius: BorderRadius.all(Radius.circular(13)),
-        ),
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Quest time',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            Spacer(),
-            // Add adventure illustration
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(Icons.landscape, size: 40, color: Colors.brown),
-                Icon(Icons.air_outlined, size: 30, color: Colors.blue),
-                Icon(Icons.sailing, size: 35, color: Colors.teal),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildChecklist() {
     return NeuContainer(
@@ -834,7 +864,15 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          if (index == 4) { // Profile tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Explore'),
