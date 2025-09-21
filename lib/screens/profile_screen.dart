@@ -226,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        _userProfile?['username'] ?? 'Unknown User',
+                        _userProfile?['name'] ?? _userProfile?['username'] ?? 'Unknown User',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -255,7 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '@${_userProfile?['username']?.toLowerCase().replaceAll(' ', '') ?? 'user'}',
+                  '@${(_userProfile?['username'] ?? 'user').toLowerCase().replaceAll(' ', '')}',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.white70,

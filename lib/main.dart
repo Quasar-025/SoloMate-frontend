@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/personal_info_screen.dart';
+import 'screens/auth/ai_preferences_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/auth/get_started_screen.dart';
@@ -60,6 +62,8 @@ class MyApp extends StatelessWidget {
         '/get_started': (context) => const GetStartedScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/personal_info': (context) => const PersonalInfoScreen(),
+        '/ai_preferences': (context) => const AIPreferencesScreen(),
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
       },

@@ -206,11 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
       greeting = 'Good Evening';
     }
     
-    // Get email and format it to prevent overflow
-    final email = _userInfo?['email'] as String? ?? 'user@example.com';
-    final formattedEmail = email.contains('@') 
-        ? email.substring(0, email.indexOf('@')) + '...'
-        : email;
+    // Use name if available, otherwise fallback to username
+    final displayName = _userInfo?['name'] ?? _userInfo?['username'] ?? 'User';
     
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -221,9 +218,9 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$greeting, ${_userInfo?['username'] ?? 'User'}',
+                '$greeting, $displayName',
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.w700,
                   fontFamily: 'gilroy',
                 ),

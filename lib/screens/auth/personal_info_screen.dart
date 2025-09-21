@@ -1,94 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
+import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class PersonalInfoScreen extends StatefulWidget {
+  const PersonalInfoScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<PersonalInfoScreen> createState() => _PersonalInfoScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
+  String? _selectedGender;
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
+  final ApiService _apiService = ApiService();
   final AuthService _authService = AuthService();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _nameController.dispose();
+    _ageController.dispose();
     super.dispose();
   }
 
-  Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      await _authService.register(
-        username: _usernameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-      
-      // Automatically log in after successful registration
-      await _authService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-      
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/personal_info');
-      }
-    } catch (e) {
-      if (mounted) {
+  Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate() || _selectedGender == null) {
+      if (_selectedGender == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
+          const SnackBar(
+            content: Text('Please select your gender'),
             backgroundColor: Colors.red,
           ),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      return;
     }
-  }
 
-  Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
 
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      
-      await _authService.loginWithGoogle(googleAuth.idToken!);
+      await _apiService.updateUserProfile({
+        'name': _nameController.text.trim(),
+        'age': int.parse(_ageController.text),
+        'gender': _selectedGender,
+      });
       
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        Navigator.of(context).pushReplacementNamed('/ai_preferences');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google sign-in failed: ${e.toString()}'),
+            content: Text('Failed to update profile: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -106,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/gifs/bg_auth.gif'),
+                image: AssetImage('assets/images/bg_info.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -163,7 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               const Text(
-                                'SIGN UP',
+                                'Personal Info',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 24,
@@ -171,12 +139,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              const Text('Username', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              const Text('Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                               const SizedBox(height: 8),
                               TextFormField(
-                                controller: _usernameController,
+                                controller: _nameController,
                                 decoration: const InputDecoration(
-                                  hintText: 'Enter Your Username',
+                                  hintText: 'Enter Your Name',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.all(Radius.circular(12)),
                                   ),
@@ -184,22 +152,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter a username';
+                                    return 'Please enter your name';
                                   }
-                                  if (value.length < 3) {
-                                    return 'Username must be at least 3 characters';
+                                  if (value.length < 2) {
+                                    return 'Name must be at least 2 characters';
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 16),
-                              const Text('Email', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              const Text('Age', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                               const SizedBox(height: 8),
                               TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
+                                controller: _ageController,
+                                keyboardType: TextInputType.number,
                                 decoration: const InputDecoration(
-                                  hintText: 'Enter your email',
+                                  hintText: 'Enter Your Age',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.all(Radius.circular(12)),
                                   ),
@@ -207,46 +175,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your email';
+                                    return 'Please enter your age';
                                   }
-                                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                      .hasMatch(value)) {
-                                    return 'Please enter a valid email';
+                                  final age = int.tryParse(value);
+                                  if (age == null || age < 13 || age > 120) {
+                                    return 'Please enter a valid age (13-120)';
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 16),
-                              const Text('Password', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  hintText: 'Password',
-                                  border: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(_obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined),
-                                    onPressed: () => setState(
-                                        () => _obscurePassword = !_obscurePassword),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter a password';
-                                  }
-                                  if (value.length < 6) {
-                                    return 'Password must be at least 6 characters';
-                                  }
-                                  return null;
-                                },
+                              const Text('Gender', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildGenderOption('Male', Icons.male, const Color(0xFF4ECDC4)),
+                                  _buildGenderOption('Female', Icons.female, const Color(0xFFFF6B9D)),
+                                  _buildGenderOption('Other', Icons.person, Colors.grey),
+                                ],
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 32),
                               _isLoading
                                   ? Container(
                                       height: 50,
@@ -268,14 +217,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     )
                                   : NeuTextButton(
                                       enableAnimation: true,
-                                      onPressed: _register,
+                                      onPressed: _updateProfile,
                                       buttonColor: const Color(0xFF82B4FF),
                                       borderColor: Colors.black,
                                       borderWidth: 2,
                                       borderRadius: BorderRadius.circular(12),
                                       buttonHeight: 50,
                                       text: const Text(
-                                        'Register',
+                                        'Continue',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
@@ -283,38 +232,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         ),
                                       ),
                                     ),
-                              const SizedBox(height: 24),
-                              Row(
-                                children: [
-                                  const Expanded(child: Divider(color: Colors.grey)),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                    child: Text('Or', style: TextStyle(color: Colors.grey[600])),
-                                  ),
-                                  const Expanded(child: Divider(color: Colors.grey)),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Center(
-                                child: TextButton(
-                                  onPressed: () => Navigator.of(context).pushReplacementNamed('/login'),
-                                  child: RichText(
-                                    text: const TextSpan(
-                                      text: 'Already have an account? ',
-                                      style: TextStyle(color: Colors.black),
-                                      children: [
-                                        TextSpan(
-                                          text: 'Login',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -329,5 +246,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-}
 
+  Widget _buildGenderOption(String gender, IconData icon, Color color) {
+    final isSelected = _selectedGender == gender;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedGender = gender),
+      child: NeuContainer(
+        color: isSelected ? color : Colors.white,
+        borderColor: Colors.black,
+        borderWidth: 3,
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          width: 60,
+          height: 60,
+          child: Icon(
+            icon,
+            size: 30,
+            color: isSelected ? Colors.white : color,
+          ),
+        ),
+      ),
+    );
+  }
+}
