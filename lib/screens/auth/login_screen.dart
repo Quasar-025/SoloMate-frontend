@@ -105,6 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     NeuContainer(
                       color: Colors.white,
@@ -112,22 +113,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderWidth: 3,
                       borderRadius: BorderRadius.circular(16),
                       child: const Padding(
-                        padding: EdgeInsets.all(20.0),
+                        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               'TROVE',
                               style: TextStyle(
-                                fontSize: 48,
+                                fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 2),
                             Text(
                               'Your next adventure awaits.',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 13,
                                 color: Colors.black54,
                               ),
                             ),
@@ -135,11 +137,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     NeuContainer(
                       color: Colors.white,
                       borderColor: Colors.black,
-                      borderWidth: 3,
+                      borderWidth: 2,
                       borderRadius: BorderRadius.circular(24),
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
@@ -157,13 +159,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text('Email', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: const InputDecoration(
                                   hintText: 'Enter your email',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -177,13 +183,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                               ),
                               const SizedBox(height: 16),
-                              const Text('Password', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text('Password', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: InputDecoration(
                                   hintText: 'Password',
+                                  border: const OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   suffixIcon: IconButton(
                                     icon: Icon(_obscurePassword
                                         ? Icons.visibility_off_outlined
@@ -199,13 +209,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 32),
+                              const SizedBox(height: 24),
                               _isLoading
                                   ? Container(
-                                      height: 56,
+                                      height: 50,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFF82B4FF),
-                                        border: Border.all(color: Colors.black, width: 3),
+                                        border: Border.all(color: Colors.black, width: 2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Center(
@@ -224,9 +234,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: _login,
                                       buttonColor: const Color(0xFF82B4FF),
                                       borderColor: Colors.black,
-                                      borderWidth: 3,
+                                      borderWidth: 2,
                                       borderRadius: BorderRadius.circular(12),
-                                      buttonHeight: 56,
+                                      buttonHeight: 50,
                                       text: const Text(
                                         'Login',
                                         style: TextStyle(

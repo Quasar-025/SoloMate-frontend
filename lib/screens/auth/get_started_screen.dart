@@ -20,7 +20,7 @@ class GetStartedScreen extends StatelessWidget {
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -28,25 +28,26 @@ class GetStartedScreen extends StatelessWidget {
                   NeuContainer(
                     color: Colors.white,
                     borderColor: Colors.black,
-                    borderWidth: 3,
-                    borderRadius: BorderRadius.circular(16),
+                    borderWidth: 2,
+                    borderRadius: BorderRadius.circular(24),
                     child: const Padding(
-                      padding: EdgeInsets.all(20.0),
+                      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'TROVE',
                             style: TextStyle(
-                              fontSize: 48,
+                              fontSize: 32,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: 4),
                           Text(
                             'Your next adventure awaits.',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 14,
                               color: Colors.black54,
                             ),
                           ),
@@ -61,9 +62,9 @@ class GetStartedScreen extends StatelessWidget {
                     },
                     buttonColor: Colors.white,
                     borderColor: Colors.black,
-                    borderWidth: 3,
+                    borderWidth: 2,
                     borderRadius: BorderRadius.circular(16),
-                    buttonHeight: 56,
+                    buttonHeight: 50,
                     text: const Text(
                       'Get Started',
                       style: TextStyle(
