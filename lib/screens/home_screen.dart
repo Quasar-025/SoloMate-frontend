@@ -279,6 +279,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final temperature = _weatherData?['temperature']?['degrees']?.round() ?? '--';
     final condition = _weatherData?['weatherCondition']?['description']?['text'] ?? 'Loading...';
     final location = _locationName ?? '...';
+    final iconBaseUri = _weatherData?['weatherCondition']?['iconBaseUri'];
+    
+    // Construct proper icon URL with required parameters
+    String? iconUrl;
+    if (iconBaseUri != null) {
+      iconUrl = '$iconBaseUri.png?size=64';
+    }
 
     return Row(
       children: [
@@ -305,7 +312,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.wb_sunny, color: Colors.yellow, size: 24),
+                      iconUrl != null
+                          ? Image.network(
+                              iconUrl,
+                              width: 24,
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('Weather icon load error: $error');
+                                return _getWeatherIcon(condition);
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
+                                  ),
+                                );
+                              },
+                            )
+                          : _getWeatherIcon(condition),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -367,7 +395,37 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  
+  Widget _getWeatherIcon(String condition) {
+    IconData iconData;
+    Color iconColor = Colors.yellow;
+    
+    final conditionLower = condition.toLowerCase();
+    
+    if (conditionLower.contains('sunny') || conditionLower.contains('clear')) {
+      iconData = Icons.wb_sunny;
+      iconColor = Colors.yellow;
+    } else if (conditionLower.contains('cloud')) {
+      iconData = Icons.cloud;
+      iconColor = Colors.white;
+    } else if (conditionLower.contains('rain')) {
+      iconData = Icons.grain;
+      iconColor = Colors.lightBlue;
+    } else if (conditionLower.contains('snow')) {
+      iconData = Icons.ac_unit;
+      iconColor = Colors.white;
+    } else if (conditionLower.contains('thunder') || conditionLower.contains('storm')) {
+      iconData = Icons.flash_on;
+      iconColor = Colors.yellow;
+    } else if (conditionLower.contains('fog') || conditionLower.contains('mist')) {
+      iconData = Icons.blur_on;
+      iconColor = Colors.grey[300]!;
+    } else {
+      iconData = Icons.wb_sunny;
+      iconColor = Colors.yellow;
+    }
+    
+    return Icon(iconData, color: iconColor, size: 24);
+  }
 
   Widget _buildChecklist() {
     return NeuContainer(

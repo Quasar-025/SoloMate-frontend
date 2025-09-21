@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'gilroy',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFFFFFF3), // Global background color
         textTheme: const TextTheme(
           displayLarge: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
           displayMedium: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
