@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
+import '../../screens/safety_screen.dart';
 
 class SafetySnapshotCard extends StatelessWidget {
   const SafetySnapshotCard({super.key});
@@ -61,26 +62,27 @@ class SafetySnapshotCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      NeuContainer(
-                        color: Colors.red,
+                      NeuTextButton(
+                        enableAnimation: true,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SafetyScreen()),
+                          );
+                        },
+                        buttonColor: Colors.red,
                         borderColor: Colors.black,
                         borderWidth: 3,
-                        borderRadius: BorderRadius.circular(30),
-                        child: InkWell(
-                          onTap: () {},
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'SOS',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                                fontFamily: 'gilroy',
-                              ),
-                            ),
+                        borderRadius: BorderRadius.circular(40),
+                        buttonHeight: 80,
+                        buttonWidth: 80,
+                        text: const Text(
+                          'SOS',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            fontFamily: 'gilroy',
                           ),
                         ),
                       ),
