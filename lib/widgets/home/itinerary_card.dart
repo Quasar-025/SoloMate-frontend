@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
+import '../../screens/itinerary/itinerary_screen.dart';
 
 class ItineraryCard extends StatelessWidget {
   final Map<String, dynamic>? itineraryData;
@@ -42,7 +43,16 @@ class ItineraryCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ItineraryScreen(
+                            itineraryData: itineraryData,
+                          ),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'View Full Itinerary',
                       style: TextStyle(
@@ -303,9 +313,9 @@ class ItineraryCard extends StatelessWidget {
               onTap: () {
                 // TODO: Implement navigation functionality
               },
-              child: Text(
+              child: const Text(
                 'Explore',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10, 
                   fontWeight: FontWeight.w300,
                   color: Colors.black,
@@ -364,3 +374,5 @@ class ItineraryCard extends StatelessWidget {
     }
   }
 }
+
+
