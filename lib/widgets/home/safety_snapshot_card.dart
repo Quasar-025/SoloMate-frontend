@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
+import '../../screens/safety_screen.dart';
 
 class SafetySnapshotCard extends StatelessWidget {
   const SafetySnapshotCard({super.key});
@@ -59,6 +60,7 @@ class SafetySnapshotCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.black, width: 2),
                       ),
+<<<<<<< HEAD
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -70,6 +72,30 @@ class SafetySnapshotCard extends StatelessWidget {
                               fontFamily: 'gilroy',
                               color: Colors.white,
                             ),
+=======
+                      const SizedBox(height: 8),
+                      NeuTextButton(
+                        enableAnimation: true,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SafetyScreen()),
+                          );
+                        },
+                        buttonColor: Colors.red,
+                        borderColor: Colors.black,
+                        borderWidth: 3,
+                        borderRadius: BorderRadius.circular(40),
+                        buttonHeight: 80,
+                        buttonWidth: 80,
+                        text: const Text(
+                          'SOS',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            fontFamily: 'gilroy',
+>>>>>>> 7bb489cfe3f6efba6fcdd9209f8afff601185680
                           ),
                           const Text(
                             'Click and hold 3 seconds',

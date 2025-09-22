@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../services/location_service.dart';
 import '../screens/profile_screen.dart';
+import '../screens/safety_screen.dart';
 import '../widgets/common/home_header.dart';
 import '../widgets/home/weather_card.dart';
 import '../widgets/home/checklist_card.dart';
@@ -296,19 +297,49 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() => _selectedIndex = index);
-          if (index == 4) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
-            );
+          switch (index) {
+            case 0:
+              // Home - already here
+              break;
+            case 1:
+              // Quests - placeholder
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Quests coming soon!')),
+              );
+              break;
+            case 2:
+              // Safety
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SafetyScreen()),
+              );
+              break;
+            case 3:
+              // Profile
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+              break;
           }
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Explore'),
-          BottomNavigationBarItem(icon: Icon(Icons.camera), label: 'Capture'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Social'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Quests',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.security),
+            label: 'Safety',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
