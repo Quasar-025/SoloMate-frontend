@@ -8,7 +8,7 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
-  String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://localhost:8000';
+  String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://trove-backend-95ua.onrender.com';
   String? _token;
 
   Future<void> init() async {
