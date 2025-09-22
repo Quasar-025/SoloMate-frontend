@@ -231,98 +231,102 @@ class ItineraryCard extends StatelessWidget {
   ) {
     return Container(
       padding: const EdgeInsets.all(12),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'gilroy',
-                        ),
-                      ),
-                    ),
-                    if (difficulty != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _getDifficultyColor(difficulty),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          difficulty,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            fontFamily: 'gilroy',
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
+          // Top row with title and difficulty
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                     fontFamily: 'gilroy',
-                    fontWeight: FontWeight.w300,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w300,
-                        fontFamily: 'gilroy',
-                      ),
+              ),
+              if (difficulty != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _getDifficultyColor(difficulty),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    difficulty,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      fontFamily: 'gilroy',
                     ),
-                    if (weatherDependent) ...[
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.wb_cloudy,
-                        size: 14,
-                        color: Colors.orange,
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
-              ],
+            ],
+          ),
+          const SizedBox(height: 4),
+          // Description
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+              fontFamily: 'gilroy',
+              fontWeight: FontWeight.w300,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAA3DB),
-              border: Border.all(color: Colors.black, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: InkWell(
-              onTap: () {
-                // TODO: Implement navigation functionality
-              },
-              child: const Text(
-                'Explore',
-                style: TextStyle(
-                  fontSize: 10, 
-                  fontWeight: FontWeight.w300,
-                  color: Colors.black,
-                  fontFamily: 'gilroy',
+          const SizedBox(height: 8),
+          // Time row with navigation button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    time,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'gilroy',
+                    ),
+                  ),
+                  if (weatherDependent) ...[
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.wb_cloudy,
+                      size: 14,
+                      color: Colors.orange,
+                    ),
+                  ],
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAA3DB),
+                  border: Border.all(color: Colors.black, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    // TODO: Implement navigation functionality
+                  },
+                  child: const Text(
+                    'Navigate',
+                    style: TextStyle(
+                      fontSize: 12, 
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                      fontFamily: 'gilroy',
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),

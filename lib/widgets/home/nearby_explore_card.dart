@@ -257,73 +257,85 @@ class _NearbyExploreCardState extends State<NearbyExploreCard> {
         border: Border.all(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
+          // Top section with name and status
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'gilroy',
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontFamily: 'gilroy',
+                        fontWeight: FontWeight.w300,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  status,
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
                     fontFamily: 'gilroy',
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontFamily: 'gilroy',
-                    fontWeight: FontWeight.w300,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Bottom section with navigate button aligned to right
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC0F7FE),
+                  border: Border.all(color: Colors.black, width: 2),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    border: Border.all(color: statusColor, width: 1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+                child: InkWell(
+                  onTap: () => _navigateToPlace(name),
                   child: Text(
-                    status,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: statusColor,
+                    action,
+                    style: const TextStyle(
+                      fontSize: 12, 
                       fontWeight: FontWeight.w500,
                       fontFamily: 'gilroy',
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFC0F7FE),
-              border: Border.all(color: Colors.black, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: InkWell(
-              onTap: () => _navigateToPlace(name),
-              child: Text(
-                action,
-                style: const TextStyle(
-                  fontSize: 10, 
-                  fontWeight: FontWeight.w300,
-                  fontFamily: 'gilroy',
-                ),
               ),
-            ),
+            ],
           ),
         ],
       ),

@@ -17,7 +17,7 @@ class WeatherCard extends StatelessWidget {
     const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     
-    final formattedDate = '${weekdays[now.weekday - 1]}, ${now.day}\n${months[now.month - 1]}';
+    final formattedDate = '${weekdays[now.weekday - 1]},\n${now.day} ${months[now.month - 1]}';
     final temperature = weatherData?['temperature']?['degrees']?.round() ?? '--';
     final condition = weatherData?['weatherCondition']?['description']?['text'] ?? 'Loading...';
     final location = locationName ?? 'Loading location...';
@@ -36,7 +36,8 @@ class WeatherCard extends StatelessWidget {
             borderColor: Colors.black,
             borderWidth: 3,
             borderRadius: BorderRadius.circular(16),
-            child: Padding(
+            child: Container(
+              height: 154, // Match quest status card height
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +87,7 @@ class WeatherCard extends StatelessWidget {
                       fontFamily: 'gilroy',
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const Spacer(), // Push location to bottom
                   Text(
                     location,
                     style: const TextStyle(
@@ -96,6 +97,7 @@ class WeatherCard extends StatelessWidget {
                       fontWeight: FontWeight.w300,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ],
               ),
@@ -119,6 +121,15 @@ class WeatherCard extends StatelessWidget {
                     'Quest Status',
                     style: TextStyle(
                       fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                      fontFamily: 'gilroy',
+                    ),
+                  ),
+                  Text(
+                    '7/10',
+                    style: TextStyle(
+                      fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
                       fontFamily: 'gilroy',
