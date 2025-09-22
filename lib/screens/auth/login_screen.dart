@@ -39,7 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Use pushNamedAndRemoveUntil to clear the entire navigation stack
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (Route<dynamic> route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -70,7 +74,11 @@ class _LoginScreenState extends State<LoginScreen> {
       await _authService.loginWithGoogle(googleAuth.idToken!);
       
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Use pushNamedAndRemoveUntil to clear the entire navigation stack
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (Route<dynamic> route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {

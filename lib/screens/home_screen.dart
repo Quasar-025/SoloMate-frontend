@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../services/location_service.dart';
 import '../screens/profile_screen.dart';
 import '../widgets/common/home_header.dart';
 import '../widgets/home/weather_card.dart';
@@ -22,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   final ApiService _apiService = ApiService();
+  final LocationService _locationService = LocationService();
   
   Map<String, dynamic>? _userInfo;
   Map<String, dynamic>? _userStats;
@@ -36,14 +38,49 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeServices();
+  }
+
+  @override
+  void dispose() {
+    // Clear the callback when disposing
+    _locationService.setLocationChangeCallback(null);
+    super.dispose();
+  }
+
+  Future<void> _initializeServices() async {
+    await _locationService.init();
+    
+    // Set up callback for location changes
+    _locationService.setLocationChangeCallback(() {
+      print('Location changed, refreshing data...');
+      _refreshLocationDependentData();
+    });
+    
     _loadData();
+  }
+
+  Future<void> _refreshLocationDependentData() async {
+    // Refresh weather and itinerary data when location changes
+    await _loadWeatherData();
+    
+    // Also trigger refresh in child widgets by calling setState
+    if (mounted) {
+      setState(() {
+        // This will cause child widgets to rebuild and fetch new data
+      });
+    }
   }
 
   Future<void> _loadData() async {
     try {
       if (!_authService.isAuthenticated) {
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/login');
+          // Clear navigation stack and go to get started
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/get_started',
+            (Route<dynamic> route) => false,
+          );
         }
         return;
       }
@@ -63,8 +100,13 @@ class _HomeScreenState extends State<HomeScreen> {
       print('Error loading user data: $e');
       
       if (e.toString().contains('401') || e.toString().contains('authentication')) {
+        // Clear auth and navigate to get started
+        await _authService.logout();
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/login');
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/get_started',
+            (Route<dynamic> route) => false,
+          );
         }
         return;
       }
@@ -110,35 +152,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadWeatherData() async {
     try {
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('Location services are disabled.');
+      final position = await _locationService.getCurrentPosition();
+      if (position == null) {
+        throw Exception('Unable to get location');
       }
 
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception('Location permissions are denied');
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied, we cannot request permissions.');
-      }
-
-      Position position = await Geolocator.getCurrentPosition();
       print('Current position: ${position.latitude}, ${position.longitude}');
 
-      List<geocoding.Placemark> placemarks = await geocoding.placemarkFromCoordinates(position.latitude, position.longitude);
-      String locationName = '...';
-      if (placemarks.isNotEmpty) {
-        locationName = placemarks.first.locality ?? placemarks.first.administrativeArea ?? '...';
-      }
-
+      final locationName = await _locationService.getLocationName();
       final weatherData = await _apiService.getCurrentWeather(position.latitude, position.longitude);
       
       if (mounted) {
@@ -211,49 +232,54 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFFFF3),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await _loadData();
-            // Reload itinerary if we have location data
-            if (_locationName != null && _weatherData != null) {
-              // Get position from stored weather data or re-fetch
-              Position position = await Geolocator.getCurrentPosition();
-              await _loadItineraryData(position.latitude, position.longitude, _locationName!);
-            }
-          },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HomeHeader(userInfo: _userInfo),
-                const SizedBox(height: 20),
-                WeatherCard(
-                  weatherData: _weatherData,
-                  locationName: _locationName,
-                ),
-                const SizedBox(height: 20),
-                const ChecklistCard(),
-                const SizedBox(height: 20),
-                ItineraryCard(
-                  itineraryData: _itineraryData,
-                  isLoading: _isItineraryLoading,
-                ),
-                const SizedBox(height: 20),
-                const NearbyExploreCard(),
-                const SizedBox(height: 20),
-                const MemoriesJournalCard(),
-                const SizedBox(height: 20),
-                const SafetySnapshotCard(),
-              ],
+    return WillPopScope(
+      onWillPop: () async {
+        // Prevent back navigation from home screen
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFFFFF3),
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await _loadData();
+              // Reload itinerary if we have location data
+              final position = await _locationService.getCurrentPosition();
+              if (position != null && _locationName != null) {
+                await _loadItineraryData(position.latitude, position.longitude, _locationName!);
+              }
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HomeHeader(userInfo: _userInfo),
+                  const SizedBox(height: 20),
+                  WeatherCard(
+                    weatherData: _weatherData,
+                    locationName: _locationName,
+                  ),
+                  const SizedBox(height: 20),
+                  const ChecklistCard(),
+                  const SizedBox(height: 20),
+                  ItineraryCard(
+                    itineraryData: _itineraryData,
+                    isLoading: _isItineraryLoading,
+                  ),
+                  const SizedBox(height: 20),
+                  const NearbyExploreCard(),
+                  const SizedBox(height: 20),
+                  const MemoriesJournalCard(),
+                  const SizedBox(height: 20),
+                  const SafetySnapshotCard(),
+                ],
+              ),
             ),
           ),
         ),
+        bottomNavigationBar: _buildBottomNav(),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 

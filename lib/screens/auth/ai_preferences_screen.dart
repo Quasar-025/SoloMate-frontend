@@ -131,7 +131,11 @@ class _AIPreferencesScreenState extends State<AIPreferencesScreen> {
       await Future.delayed(const Duration(seconds: 1));
       
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Use pushNamedAndRemoveUntil to clear the entire navigation stack
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (Route<dynamic> route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {

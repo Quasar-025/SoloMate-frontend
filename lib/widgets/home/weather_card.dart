@@ -20,7 +20,7 @@ class WeatherCard extends StatelessWidget {
     final formattedDate = '${weekdays[now.weekday - 1]}, ${now.day}\n${months[now.month - 1]}';
     final temperature = weatherData?['temperature']?['degrees']?.round() ?? '--';
     final condition = weatherData?['weatherCondition']?['description']?['text'] ?? 'Loading...';
-    final location = locationName ?? '...';
+    final location = locationName ?? 'Loading location...';
     final iconBaseUri = weatherData?['weatherCondition']?['iconBaseUri'];
     
     String? iconUrl;
@@ -95,6 +95,7 @@ class WeatherCard extends StatelessWidget {
                       fontFamily: 'gilroy',
                       fontWeight: FontWeight.w300,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

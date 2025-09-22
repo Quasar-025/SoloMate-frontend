@@ -51,6 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       
       if (mounted) {
+        // Navigate to personal info screen with proper navigation
         Navigator.of(context).pushReplacementNamed('/personal_info');
       }
     } catch (e) {
@@ -82,7 +83,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await _authService.loginWithGoogle(googleAuth.idToken!);
       
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Use pushNamedAndRemoveUntil to clear the entire navigation stack
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (Route<dynamic> route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {

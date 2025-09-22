@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
 import '../../services/api_service.dart';
+import '../../services/location_service.dart';
 
 class MemoriesJournalCard extends StatefulWidget {
   const MemoriesJournalCard({super.key});
@@ -12,6 +13,7 @@ class MemoriesJournalCard extends StatefulWidget {
 class _MemoriesJournalCardState extends State<MemoriesJournalCard> {
   final TextEditingController _journalController = TextEditingController();
   final ApiService _apiService = ApiService();
+  final LocationService _locationService = LocationService();
   bool _isLoading = false;
   int get _characterCount => _journalController.text.length;
 
@@ -19,6 +21,19 @@ class _MemoriesJournalCardState extends State<MemoriesJournalCard> {
   void dispose() {
     _journalController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _locationService.init();
+  }
+
+  @override
+  void didUpdateWidget(MemoriesJournalCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reinitialize location service when widget updates
+    _locationService.init();
   }
 
   Future<void> _saveJournalEntry() async {
@@ -35,10 +50,13 @@ class _MemoriesJournalCardState extends State<MemoriesJournalCard> {
     setState(() => _isLoading = true);
 
     try {
+      // Get current location for the journal entry (this will use updated preferences)
+      final locationName = await _locationService.getLocationName();
+      
       final entryData = {
         'content': _journalController.text.trim(),
         'date': DateTime.now().toIso8601String(),
-        'location': null, // Can be added later when location services are integrated
+        'location': locationName,
         'mood': null, // Can be added later for mood tracking
         'tags': <String>[], // Can be added later for tagging system
       };

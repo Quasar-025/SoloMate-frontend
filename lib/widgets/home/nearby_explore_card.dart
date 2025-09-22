@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../services/api_service.dart';
+import '../../services/location_service.dart';
 
 class NearbyExploreCard extends StatefulWidget {
   const NearbyExploreCard({super.key});
@@ -12,6 +13,7 @@ class NearbyExploreCard extends StatefulWidget {
 
 class _NearbyExploreCardState extends State<NearbyExploreCard> {
   final ApiService _apiService = ApiService();
+  final LocationService _locationService = LocationService();
   String _selectedCategory = 'FOOD';
   List<dynamic> _nearbyPlaces = [];
   bool _isLoading = false;
@@ -30,12 +32,29 @@ class _NearbyExploreCardState extends State<NearbyExploreCard> {
   @override
   void initState() {
     super.initState();
+    _initializeAndLoadData();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _initializeAndLoadData() async {
+    await _locationService.init();
+    await _getCurrentLocationAndLoadData();
+  }
+
+  @override
+  void didUpdateWidget(NearbyExploreCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload data when widget updates (triggered by parent setState)
     _getCurrentLocationAndLoadData();
   }
 
   Future<void> _getCurrentLocationAndLoadData() async {
     try {
-      _currentPosition = await Geolocator.getCurrentPosition();
+      _currentPosition = await _locationService.getCurrentPosition();
       await _loadNearbyPlaces();
     } catch (e) {
       print('Error getting location: $e');

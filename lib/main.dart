@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'services/auth_service.dart';
+import 'services/location_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/personal_info_screen.dart';
@@ -16,8 +17,9 @@ void main() async {
     // Load environment variables
     await dotenv.load(fileName: ".env");
     
-    // Initialize auth service
+    // Initialize services
     await AuthService().init();
+    await LocationService().init();
   } catch (e) {
     // Handle initialization errors gracefully
     print('Initialization error: $e');
@@ -37,7 +39,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'gilroy',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFFFFFF3), // Global background color
+        scaffoldBackgroundColor: const Color(0xFFFFFFF3),
         textTheme: const TextTheme(
           displayLarge: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
           displayMedium: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
@@ -56,8 +58,7 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'gilroy', fontWeight: FontWeight.w300),
         ),
       ),
-      // Always start with login screen to avoid auth check issues during development
-      initialRoute: '/get_started',
+      home: const AuthWrapper(),
       routes: {
         '/get_started': (context) => const GetStartedScreen(),
         '/login': (context) => const LoginScreen(),
@@ -68,5 +69,70 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
       },
     );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isLoading = true;
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    try {
+      final authService = AuthService();
+      
+      // Check if user has a valid token
+      if (authService.isAuthenticated) {
+        // Verify token is still valid by trying to get user info
+        await authService.getCurrentUser();
+        setState(() {
+          _isAuthenticated = true;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isAuthenticated = false;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Auth check failed: $e');
+      // If auth check fails, clear any invalid tokens and show get started
+      await AuthService().logout();
+      setState(() {
+        _isAuthenticated = false;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFFFFFF3),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_isAuthenticated) {
+      return const HomeScreen();
+    } else {
+      return const GetStartedScreen();
+    }
   }
 }

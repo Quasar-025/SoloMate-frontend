@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../services/location_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,6 +14,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
   final ApiService _apiService = ApiService();
+  final LocationService _locationService = LocationService();
   
   Map<String, dynamic>? _userProfile;
   Map<String, dynamic>? _userStats;
@@ -23,11 +25,195 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isFollowing = false;
   bool _isLoadingJournal = false;
   String _selectedTab = 'Journal';
+  
+  // Location selector state
+  bool _useCurrentLocation = true;
+  String _customLocation = '';
+  final TextEditingController _locationController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _loadLocationPreference();
+  }
+
+  @override
+  void dispose() {
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadLocationPreference() async {
+    await _locationService.init();
+    setState(() {
+      _useCurrentLocation = _locationService.useCurrentLocation;
+      _customLocation = _locationService.customLocation;
+      _locationController.text = _customLocation;
+    });
+  }
+
+  Future<void> _saveLocationPreference() async {
+    try {
+      await _locationService.updateLocationPreference(
+        useCurrentLocation: _useCurrentLocation,
+        customLocation: _customLocation,
+      );
+
+      // Also save to API
+      final response = await _apiService.updateLocationPreference(
+        useCurrentLocation: _useCurrentLocation,
+        customLocation: _customLocation,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Location preference saved successfully!'),
+            backgroundColor: response['success'] == true ? Colors.green : Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save location preference: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showLocationSelector() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text(
+                'Location Preference',
+                style: TextStyle(
+                  fontFamily: 'gilroy',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Current location option
+                  RadioListTile<bool>(
+                    title: const Text(
+                      'Use Current Location',
+                      style: TextStyle(
+                        fontFamily: 'gilroy',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Automatically detect your location',
+                      style: TextStyle(
+                        fontFamily: 'gilroy',
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    value: true,
+                    groupValue: _useCurrentLocation,
+                    onChanged: (bool? value) {
+                      setDialogState(() {
+                        _useCurrentLocation = value ?? true;
+                      });
+                    },
+                  ),
+                  // Custom location option
+                  RadioListTile<bool>(
+                    title: const Text(
+                      'Custom Location',
+                      style: TextStyle(
+                        fontFamily: 'gilroy',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Manually enter your location',
+                      style: TextStyle(
+                        fontFamily: 'gilroy',
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    value: false,
+                    groupValue: _useCurrentLocation,
+                    onChanged: (bool? value) {
+                      setDialogState(() {
+                        _useCurrentLocation = value ?? true;
+                      });
+                    },
+                  ),
+                  // Custom location input field
+                  if (!_useCurrentLocation) ...[
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _locationController,
+                      decoration: const InputDecoration(
+                        labelText: 'Enter Location',
+                        hintText: 'e.g., New York, London, Tokyo',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      style: const TextStyle(fontFamily: 'gilroy'),
+                      onChanged: (value) {
+                        _customLocation = value;
+                      },
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(fontFamily: 'gilroy'),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (!_useCurrentLocation && _customLocation.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please enter a location'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    setState(() {
+                      // Update the main state
+                    });
+                    
+                    Navigator.of(context).pop();
+                    _saveLocationPreference();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4ECDC4),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(fontFamily: 'gilroy'),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _loadUserData() async {
@@ -109,7 +295,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout() async {
     await _authService.logout();
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/login');
+      // Clear navigation stack and go to get started
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/get_started',
+        (Route<dynamic> route) => false,
+      );
     }
   }
 
@@ -382,36 +572,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildActionButtons() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
+          // Location selector
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
             child: NeuContainer(
-              color: const Color(0xFFCDFF85),
+              color: const Color(0xFFF0F0F0),
               borderColor: Colors.black,
               borderWidth: 3,
               borderRadius: BorderRadius.circular(12),
               child: InkWell(
-                onTap: () {
-                  setState(() => _isFollowing = !_isFollowing);
-                },
+                onTap: _showLocationSelector,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        _isFollowing ? 'Following' : 'Edit Profile',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                          fontFamily: 'gilroy',
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.black,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Location Preference',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                                fontFamily: 'gilroy',
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _locationService.getDisplayLocation(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                                fontFamily: 'gilroy',
+                                fontWeight: FontWeight.w300,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        _isFollowing ? Icons.check : Icons.edit,
-                        color: Colors.black,
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.grey,
+                        size: 16,
                       ),
                     ],
                   ),
@@ -419,17 +632,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          NeuContainer(
-            color: Colors.white,
-            borderColor: Colors.black,
-            borderWidth: 3,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: 48,
-              height: 48,
-              child: const Icon(Icons.share, color: Colors.black),
-            ),
+          // Existing action buttons
+          Row(
+            children: [
+              Expanded(
+                child: NeuContainer(
+                  color: const Color(0xFFCDFF85),
+                  borderColor: Colors.black,
+                  borderWidth: 3,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() => _isFollowing = !_isFollowing);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _isFollowing ? 'Following' : 'Edit Profile',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                              fontFamily: 'gilroy',
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            _isFollowing ? Icons.check : Icons.edit,
+                            color: Colors.black,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              NeuContainer(
+                color: Colors.white,
+                borderColor: Colors.black,
+                borderWidth: 3,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  child: const Icon(Icons.share, color: Colors.black),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -831,3 +1084,4 @@ class MountainPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+
