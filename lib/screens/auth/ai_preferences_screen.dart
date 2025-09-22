@@ -251,15 +251,14 @@ class _AIPreferencesScreenState extends State<AIPreferencesScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  if (isSelected)
-                                    Icon(
-                                      currentQuestion['type'] == 'multiple'
-                                          ? Icons.check_box
-                                          : Icons.radio_button_checked,
-                                      color: Colors.black,
-                                      size: 20,
-                                    ),
-                                  if (isSelected) const SizedBox(width: 8),
+                                  Icon(
+                                    currentQuestion['type'] == 'multiple'
+                                        ? (isSelected ? Icons.check_box : Icons.check_box_outline_blank)
+                                        : (isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked),
+                                    color: Colors.black,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       option['text'],

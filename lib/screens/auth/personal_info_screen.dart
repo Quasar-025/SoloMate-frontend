@@ -192,7 +192,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                 children: [
                                   _buildGenderOption('Male', Icons.male, const Color(0xFF4ECDC4)),
                                   _buildGenderOption('Female', Icons.female, const Color(0xFFFF6B9D)),
-                                  _buildGenderOption('Other', Icons.person, Colors.grey),
+                                  _buildGenderOption('Other', Icons.person, const Color.fromARGB(255, 173, 136, 255)),
                                 ],
                               ),
                               const SizedBox(height: 32),
@@ -259,11 +259,22 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         child: Container(
           width: 60,
           height: 60,
-          child: Icon(
-            icon,
-            size: 30,
-            color: isSelected ? Colors.white : color,
-          ),
+          child: gender == 'Other'
+              ? Center(
+                  child: Text(
+                    'Other',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : color,
+                    ),
+                  ),
+                )
+              : Icon(
+                  icon,
+                  size: 30,
+                  color: isSelected ? Colors.white : color,
+                ),
         ),
       ),
     );
