@@ -18,8 +18,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userStats;
   List<dynamic> _userBadges = [];
   List<dynamic> _friends = [];
+  List<dynamic> _journalEntries = [];
   bool _isLoading = true;
   bool _isFollowing = false;
+  bool _isLoadingJournal = false;
+  String _selectedTab = 'Journal';
 
   @override
   void initState() {
@@ -46,6 +49,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _friends = []; // Not in /auth/me response
           _isLoading = false;
         });
+        
+        // Load journal entries after user data is loaded
+        _loadJournalEntries();
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -71,6 +77,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'level': 1,
           };
           _isLoading = false;
+        });
+        _loadJournalEntries(); // Still try to load journal entries
+      }
+    }
+  }
+
+  Future<void> _loadJournalEntries() async {
+    setState(() => _isLoadingJournal = true);
+    
+    try {
+      final response = await _apiService.getJournalEntries(limit: 20);
+      
+      if (mounted) {
+        setState(() {
+          _journalEntries = response['entries'] ?? [];
+          _isLoadingJournal = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading journal entries: $e');
+      if (mounted) {
+        setState(() {
+          _journalEntries = [];
+          _isLoadingJournal = false;
         });
       }
     }
@@ -414,53 +444,239 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Tab headers
           Row(
             children: [
-              _buildTabHeader('Posts', true),
+              _buildTabHeader('Journal', _selectedTab == 'Journal'),
               const SizedBox(width: 24),
-              _buildTabHeader('NFTs owned', false),
+              _buildTabHeader('NFTs owned', _selectedTab == 'NFTs owned'),
             ],
           ),
           const SizedBox(height: 16),
-          // Grid content
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: 4, // Placeholder count
-            itemBuilder: (context, index) {
-              return _buildPostCard(index);
-            },
-          ),
+          // Tab content
+          _selectedTab == 'Journal' ? _buildJournalContent() : _buildNFTContent(),
         ],
       ),
     );
   }
 
   Widget _buildTabHeader(String title, bool isSelected) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: isSelected ? Colors.black : Colors.grey,
-            fontFamily: 'gilroy',
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTab = title;
+        });
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: isSelected ? Colors.black : Colors.grey,
+              fontFamily: 'gilroy',
+            ),
           ),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              height: 2,
+              width: 40,
+              color: Colors.black,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJournalContent() {
+    if (_isLoadingJournal) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
         ),
-        if (isSelected)
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            height: 2,
-            width: 40,
-            color: Colors.black,
-          ),
-      ],
+      );
+    }
+
+    if (_journalEntries.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Icon(
+              Icons.book_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No journal entries yet',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+                fontFamily: 'gilroy',
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start writing about your adventures!',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+                fontFamily: 'gilroy',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 1,
+        mainAxisSpacing: 12,
+        childAspectRatio: 3,
+      ),
+      itemCount: _journalEntries.length,
+      itemBuilder: (context, index) {
+        return _buildJournalCard(_journalEntries[index]);
+      },
+    );
+  }
+
+  Widget _buildNFTContent() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: 4, // Placeholder count
+      itemBuilder: (context, index) {
+        return _buildPostCard(index);
+      },
+    );
+  }
+
+  Widget _buildJournalCard(Map<String, dynamic> entry) {
+    final DateTime entryDate = DateTime.parse(entry['date']);
+    final String formattedDate = '${entryDate.day}/${entryDate.month}/${entryDate.year}';
+    final String content = entry['content'] ?? '';
+    final String location = entry['location'] ?? '';
+    final List<dynamic> tags = entry['tags'] ?? [];
+
+    return NeuContainer(
+      color: Colors.white,
+      borderColor: Colors.black,
+      borderWidth: 3,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        formattedDate,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          fontFamily: 'gilroy',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (location.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                        const SizedBox(width: 2),
+                        Flexible(
+                          child: Text(
+                            location,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontFamily: 'gilroy',
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    content,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontFamily: 'gilroy',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: tags.take(3).map<Widget>((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E8),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green, width: 1),
+                          ),
+                          child: Text(
+                            '#$tag',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.green,
+                              fontFamily: 'gilroy',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ));
+                        }).toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'delete') {
+                  _showDeleteConfirmation(entry['id']);
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red, size: 16),
+                      SizedBox(width: 8),
+                      Text('Delete', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+              child: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -504,6 +720,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  void _showDeleteConfirmation(String entryId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Journal Entry'),
+          content: const Text('Are you sure you want to delete this journal entry? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteJournalEntry(entryId);
+              },
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteJournalEntry(String entryId) async {
+    try {
+      final response = await _apiService.deleteJournalEntry(entryId);
+      
+      if (response['success'] == true) {
+        // Remove the entry from the local list
+        setState(() {
+          _journalEntries.removeWhere((entry) => entry['id'] == entryId);
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Journal entry deleted successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['error'] ?? 'Failed to delete entry'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting entry: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 

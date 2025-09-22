@@ -1,8 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../services/api_service.dart';
 
-class NearbyExploreCard extends StatelessWidget {
+class NearbyExploreCard extends StatefulWidget {
   const NearbyExploreCard({super.key});
+
+  @override
+  State<NearbyExploreCard> createState() => _NearbyExploreCardState();
+}
+
+class _NearbyExploreCardState extends State<NearbyExploreCard> {
+  final ApiService _apiService = ApiService();
+  String _selectedCategory = 'FOOD';
+  List<dynamic> _nearbyPlaces = [];
+  bool _isLoading = false;
+  Position? _currentPosition;
+
+  final Map<String, String> _categoryLabels = {
+    'FOOD': 'Eat',
+    'SHOPS': 'Shop',
+    'MEDICAL': 'Medical',
+    'TRAVEL': 'Travel',
+    'TOURISM': 'Tourism',
+    'ENTERTAINMENT': 'Fun',
+    'SERVICES': 'Services',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocationAndLoadData();
+  }
+
+  Future<void> _getCurrentLocationAndLoadData() async {
+    try {
+      _currentPosition = await Geolocator.getCurrentPosition();
+      await _loadNearbyPlaces();
+    } catch (e) {
+      print('Error getting location: $e');
+      // Load with mock data if location fails
+      _loadMockData();
+    }
+  }
+
+  Future<void> _loadNearbyPlaces() async {
+    if (_currentPosition == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final data = await _apiService.getNearbyPlacesByCategory(
+        category: _selectedCategory,
+        latitude: _currentPosition!.latitude,
+        longitude: _currentPosition!.longitude,
+        radiusKm: 2.0,
+        limit: 5,
+      );
+
+      if (mounted) {
+        setState(() {
+          _nearbyPlaces = data['places'] ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading nearby places: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _loadMockData();
+      }
+    }
+  }
+
+  void _loadMockData() {
+    setState(() {
+      _nearbyPlaces = [
+        {
+          'name': 'Beachie Cafe',
+          'vicinity': 'Chill Cafe',
+          'distance_meters': 300,
+          'is_open_now': true,
+        },
+        {
+          'name': 'Ganga View Restaurant',
+          'vicinity': 'River view dining',
+          'distance_meters': 500,
+          'is_open_now': false,
+        },
+        {
+          'name': 'Pani Shop',
+          'vicinity': 'Smoking Spot',
+          'distance_meters': 300,
+          'is_open_now': true,
+        },
+      ];
+    });
+  }
+
+  void _onCategorySelected(String category) {
+    if (_selectedCategory != category) {
+      setState(() {
+        _selectedCategory = category;
+      });
+      _loadNearbyPlaces();
+    }
+  }
+
+  String _formatDistance(dynamic distanceMeters) {
+    if (distanceMeters == null) return '';
+    
+    final distance = distanceMeters is double 
+        ? distanceMeters.round() 
+        : distanceMeters is int 
+            ? distanceMeters 
+            : int.tryParse(distanceMeters.toString()) ?? 0;
+    
+    if (distance < 1000) {
+      return '${distance}m';
+    } else {
+      return '${(distance / 1000).toStringAsFixed(1)}km';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,42 +146,81 @@ class NearbyExploreCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                _buildExploreChip('Eat', true),
-                const SizedBox(width: 8),
-                _buildExploreChip('Shop', false),
-                const SizedBox(width: 8),
-                _buildExploreChip('Medical', false),
-                const SizedBox(width: 8),
-                _buildExploreChip('Travel', false),
-              ],
+            // Category chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _categoryLabels.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _buildExploreChip(
+                      entry.value,
+                      entry.key,
+                      _selectedCategory == entry.key,
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
             const SizedBox(height: 12),
-            _buildNearbyItem('Beachie Cafe', 'Chill Cafe • 300m', 'No Rush', 'Start Navigation'),
-            _buildNearbyItem('Ganga View Restaurant', 'River view dining • 500m', 'Closed', 'Start Navigation'),
-            _buildNearbyItem('Pani Shop', 'Smoking Spot • 300m', 'No Rush', 'Start Navigation'),
+            // Loading or places list
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (_nearbyPlaces.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text(
+                    'No places found nearby',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontFamily: 'gilroy',
+                    ),
+                  ),
+                ),
+              )
+            else
+              // Places list
+              Column(
+                children: _nearbyPlaces.take(3).map<Widget>((place) {
+                  return _buildNearbyItem(
+                    place['name'] ?? 'Unknown Place',
+                    '${place['vicinity'] ?? ''} • ${_formatDistance(place['distance_meters'])}',
+                    place['is_open_now'] == true ? 'Open' : place['is_open_now'] == false ? 'Closed' : 'Unknown',
+                    'Navigate',
+                  );
+                }).toList(),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildExploreChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.black : Colors.white,
-        border: Border.all(color: Colors.black, width: 2),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black,
-          fontSize: 12,
-          fontWeight: FontWeight.w300,
-          fontFamily: 'gilroy',
+  Widget _buildExploreChip(String label, String category, bool isSelected) {
+    return GestureDetector(
+      onTap: () => _onCategorySelected(category),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.black : Colors.white,
+          border: Border.all(color: Colors.black, width: 2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontSize: 12,
+            fontWeight: FontWeight.w300,
+            fontFamily: 'gilroy',
+          ),
         ),
       ),
     );
@@ -90,7 +250,10 @@ class NearbyExploreCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     fontFamily: 'gilroy',
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 2),
                 Text(
                   description,
                   style: const TextStyle(
@@ -99,7 +262,10 @@ class NearbyExploreCard extends StatelessWidget {
                     fontFamily: 'gilroy',
                     fontWeight: FontWeight.w300,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
@@ -112,7 +278,7 @@ class NearbyExploreCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       color: statusColor,
-                      fontWeight: FontWeight.w300,
+                      fontWeight: FontWeight.w500,
                       fontFamily: 'gilroy',
                     ),
                   ),
@@ -128,7 +294,15 @@ class NearbyExploreCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: InkWell(
-              onTap: () {},
+              onTap: () {
+                // TODO: Implement navigation functionality
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Navigate to $name'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
               child: Text(
                 action,
                 style: const TextStyle(
