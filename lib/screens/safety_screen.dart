@@ -1,7 +1,9 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/location_service.dart';
+import '../services/api_service.dart';
 
 class SafetyScreen extends StatefulWidget {
   const SafetyScreen({super.key});
@@ -12,6 +14,7 @@ class SafetyScreen extends StatefulWidget {
 
 class _SafetyScreenState extends State<SafetyScreen> {
   final LocationService _locationService = LocationService();
+  final ApiService _apiService = ApiService();
   final TextEditingController _messageController = TextEditingController();
   bool _locationActive = true;
   bool _shareLocation = true;
@@ -54,10 +57,94 @@ class _SafetyScreenState extends State<SafetyScreen> {
     },
   ];
 
+  double? _safetyIndex;
+  bool _isSafetyLoading = false;
+  String _safetyStatus = '';
+  String _safetyMessage = '';
+
   @override
   void initState() {
     super.initState();
     _locationService.init();
+    _fetchSafetyIndex();
+  }
+
+  Future<void> _fetchSafetyIndex() async {
+    setState(() {
+      _isSafetyLoading = true;
+      _safetyIndex = null;
+      _safetyStatus = '';
+      _safetyMessage = '';
+    });
+
+    try {
+      final position = await _locationService.getCurrentPosition();
+      final cityName = await _locationService.getLocationName();
+
+      if (position == null) {
+        setState(() {
+          _safetyIndex = null;
+          _safetyStatus = 'Location unavailable';
+          _safetyMessage = 'unknown';
+          _isSafetyLoading = false;
+        });
+        return;
+      }
+
+      final result = await _apiService.getSafetyIndexFromNews(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        cityName: cityName,
+      );
+
+      double? index;
+      if (result['success'] == true) {
+        // Use numeric safety_index if available, else fallback to regex parse
+        if (result['safety_index'] is num) {
+          index = (result['safety_index'] as num).toDouble();
+        } else {
+          final raw = result['safety_index']?.toString() ?? '';
+          final match = RegExp(r'(\d{1,3})').firstMatch(raw);
+          if (match != null) {
+            index = double.tryParse(match.group(1)!) ?? 95;
+          } else {
+            index = 95;
+          }
+        }
+        setState(() {
+          _safetyIndex = index;
+          if (index != null && index >= 80) {
+            _safetyStatus = 'Its safe to Travel';
+            _safetyMessage = 'safe';
+          } else if (index != null && index >= 60) {
+            _safetyStatus = 'Caution Advised';
+            _safetyMessage = 'caution';
+          } else if (index != null) {
+            _safetyStatus = 'Not Safe';
+            _safetyMessage = 'danger';
+          } else {
+            _safetyStatus = 'Could not fetch safety index';
+            _safetyMessage = 'unknown';
+          }
+        });
+      } else {
+        setState(() {
+          _safetyIndex = null;
+          _safetyStatus = 'Could not fetch safety index';
+          _safetyMessage = 'unknown';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _safetyIndex = null;
+        _safetyStatus = 'Could not fetch safety index';
+        _safetyMessage = 'unknown';
+      });
+    } finally {
+      setState(() {
+        _isSafetyLoading = false;
+      });
+    }
   }
 
   @override
@@ -234,24 +321,73 @@ class _SafetyScreenState extends State<SafetyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search bar
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search for safety requirements',
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+            // --- SAFETY INDEX SECTION ---
+            NeuContainer(
+              color: Colors.white,
+              borderColor: Colors.black,
+              borderWidth: 3,
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Search Safety Index of\nyour Destination',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'gilroy',
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    _isSafetyLoading
+                        ? const CircularProgressIndicator()
+                        : NeuContainer(
+                            color: Colors.white,
+                            borderColor: Colors.black,
+                            borderWidth: 2,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              child: Text(
+                                _safetyIndex != null
+                                    ? '${_safetyIndex!.toStringAsFixed(0)}/100'
+                                    : '--/100',
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w900,
+                                  fontFamily: 'gilroy',
+                                ),
+                              ),
+                            ),
+                          ),
+                    const SizedBox(height: 12),
+                    NeuTextButton(
+                      enableAnimation: true,
+                      onPressed: _fetchSafetyIndex,
+                      buttonColor: Colors.black,
+                      borderColor: Colors.black,
+                      borderWidth: 2,
+                      borderRadius: BorderRadius.circular(10),
+                      buttonHeight: 40,
+                      text: Text(
+                        _safetyStatus.isNotEmpty ? _safetyStatus : 'Check Safety',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontFamily: 'gilroy',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSafetyGauge(_safetyIndex, _safetyMessage),
+                  ],
                 ),
-                style: TextStyle(fontFamily: 'gilroy'),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // SOS Emergency Section
             NeuContainer(
@@ -674,4 +810,104 @@ class _SafetyScreenState extends State<SafetyScreen> {
       ),
     );
   }
+
+  Widget _buildSafetyGauge(double? index, String status) {
+    // Gauge colors and faces
+    Color faceColor;
+    IconData faceIcon;
+    if (status == 'safe') {
+      faceColor = Colors.green;
+      faceIcon = Icons.sentiment_satisfied_alt;
+    } else if (status == 'caution') {
+      faceColor = Colors.orange;
+      faceIcon = Icons.sentiment_neutral;
+    } else if (status == 'danger') {
+      faceColor = Colors.red;
+      faceIcon = Icons.sentiment_very_dissatisfied;
+    } else {
+      faceColor = Colors.grey;
+      faceIcon = Icons.help_outline;
+    }
+
+    // Calculate pointer angle (0 = left, pi = right, pi/2 = center)
+    double angle = pi / 2;
+    if (index != null) {
+      angle = pi * (1 - (index.clamp(0, 100) / 100));
+    }
+
+    return Column(
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: faceColor,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.black, width: 3),
+          ),
+          child: Icon(faceIcon, color: Colors.black, size: 40),
+        ),
+        const SizedBox(height: 12),
+        // Gauge
+        CustomPaint(
+          size: const Size(200, 100),
+          painter: _SafetyGaugePainter(index: index),
+        ),
+      ],
+    );
+  }
+}
+
+// --- Custom Painter for Gauge ---
+class _SafetyGaugePainter extends CustomPainter {
+  final double? index;
+  _SafetyGaugePainter({this.index});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height);
+    final radius = size.width / 2;
+
+    // Draw colored arcs
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 18;
+
+    // Red (left)
+    paint.color = Colors.red;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), pi, pi / 4, false, paint);
+
+    // Orange (left-mid)
+    paint.color = Colors.orange;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), pi + pi / 4, pi / 4, false, paint);
+
+    // Green (center)
+    paint.color = Colors.green;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 1.5 * pi, pi / 4, false, paint);
+
+    // Blue (right)
+    paint.color = Colors.deepPurple;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 1.75 * pi, pi / 4, false, paint);
+
+    // Pointer
+    if (index != null) {
+      final pointerAngle = pi * (1 - (index!.clamp(0, 100) / 100));
+      final pointerLength = radius - 10;
+      final pointerEnd = Offset(
+        center.dx + pointerLength * cos(pointerAngle),
+        center.dy - pointerLength * sin(pointerAngle),
+      );
+      final pointerPaint = Paint()
+        ..color = Colors.black
+        ..strokeWidth = 6
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(center, pointerEnd, pointerPaint);
+
+      // Draw pointer knob
+      canvas.drawCircle(center, 10, Paint()..color = Colors.black);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

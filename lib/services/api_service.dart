@@ -266,10 +266,69 @@ class ApiService {
   // Safety API
   Future<Map<String, dynamic>> getCitySafetyIndex(String cityId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/safety/index/city/$cityId'),
+      Uri.parse('$baseUrl/safety/index/city/$cityId'),
       headers: _headers,
     );
     return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> getSafetyIndexFromNews({
+    required double latitude,
+    required double longitude,
+    String? cityName,
+    String? country,
+    double radiusKm = 50,
+    int daysBack = 7,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
+        if (cityName != null) 'city_name': cityName,
+        if (country != null) 'country': country,
+        'radius_km': radiusKm.toString(),
+        'days_back': daysBack.toString(),
+      };
+
+      final uri = Uri.parse('$baseUrl/safety/news/scrape').replace(
+        queryParameters: queryParams,
+      );
+
+      print('Fetching safety index from news: $uri');
+      print('Request headers: $_headers');
+
+      final response = await http.post(uri, headers: _headers);
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        // Parse JSON and extract average_safety_score
+        try {
+          final data = jsonDecode(response.body);
+          final avgScore = data['safety_analysis']?['average_safety_score'];
+          if (avgScore != null && avgScore is num) {
+            final index = (avgScore * 100).clamp(0, 100).toDouble();
+            return {
+              'success': true,
+              'safety_index': index,
+              'raw': data,
+            };
+          }
+        } catch (e) {
+          print('Error parsing safety index JSON: $e');
+        }
+        // fallback: try to parse as string (legacy)
+        final result = response.body;
+        return {'success': true, 'safety_index': result};
+      } else {
+        print('API Error: ${response.statusCode} - ${response.body}');
+        return {'success': false, 'error': 'Failed to fetch safety index'};
+      }
+    } catch (e) {
+      print('Error fetching safety index: $e');
+      return {'success': false, 'error': e.toString()};
+    }
   }
 
   // AI Recommendations API
