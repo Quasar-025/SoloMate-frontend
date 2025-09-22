@@ -885,6 +885,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildNFTContent() {
+    final List<Map<String, String>> nftImages = [
+      {'image': 'assets/images/CultureQuest.jpg', 'title': 'Culture Quest'},
+      {'image': 'assets/images/bg_auth.gif', 'title': 'Adventure Quest'},
+      {'image': 'assets/images/itinerary_detail_bg.jpg', 'title': 'Nature Quest'},
+      {'image': 'assets/images/bg_profile.png', 'title': 'Urban Quest'},
+    ];
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -894,10 +901,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisSpacing: 12,
         childAspectRatio: 0.8,
       ),
-      itemCount: 4, // Placeholder count
+      itemCount: nftImages.length,
       itemBuilder: (context, index) {
-        return _buildPostCard(index);
+        return _buildPostCard(nftImages[index]);
       },
+    );
+  }
+
+  Widget _buildPostCard(Map<String, String> nftData) {
+    return NeuContainer(
+      color: const Color(0xFFF0F0F0),
+      borderColor: Colors.black,
+      borderWidth: 3,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: AssetImage(nftData['image']!),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              nftData['title']!,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+                fontFamily: 'gilroy',
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1009,48 +1053,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
               child: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPostCard(int index) {
-    final locations = ['Nainital', 'Goa', 'Kerala', 'Rajasthan'];
-    return NeuContainer(
-      color: const Color(0xFFF0F0F0),
-      borderColor: Colors.black,
-      borderWidth: 3,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.image,
-                    size: 40,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              locations[index % locations.length],
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-                fontFamily: 'gilroy',
-              ),
             ),
           ],
         ),
@@ -1175,4 +1177,5 @@ class MountainPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+
 
