@@ -9,6 +9,7 @@ import 'screens/auth/ai_preferences_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/auth/get_started_screen.dart';
+import 'screens/quest_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +61,7 @@ class MyApp extends StatelessWidget {
       ),
       home: const AuthWrapper(),
       routes: {
+        // '/': (context) => const SplashScreen(),
         '/get_started': (context) => const GetStartedScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
@@ -67,6 +69,8 @@ class MyApp extends StatelessWidget {
         '/ai_preferences': (context) => const AIPreferencesScreen(),
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
+        // '/safety': (context) => const SafetyScreen(),
+        '/quest': (context) => const QuestScreen(),
       },
     );
   }

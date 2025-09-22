@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/location_service.dart';
 import '../screens/profile_screen.dart';
 import '../screens/safety_screen.dart';
+import '../screens/quest_screen.dart';
 import '../widgets/common/home_header.dart';
 import '../widgets/home/weather_card.dart';
 import '../widgets/home/checklist_card.dart';
@@ -296,30 +297,42 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: (index) {
+          if (index == _selectedIndex) return; // Don't navigate if already on the same tab
+          
           setState(() => _selectedIndex = index);
           switch (index) {
             case 0:
               // Home - already here
               break;
             case 1:
-              // Quests - placeholder
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Quests coming soon!')),
-              );
+              // Quests
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const QuestScreen()),
+              ).then((_) {
+                // Reset selection when returning from quest screen
+                if (mounted) setState(() => _selectedIndex = 0);
+              });
               break;
             case 2:
               // Safety
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SafetyScreen()),
-              );
+              ).then((_) {
+                // Reset selection when returning from safety screen
+                if (mounted) setState(() => _selectedIndex = 0);
+              });
               break;
             case 3:
               // Profile
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
+              ).then((_) {
+                // Reset selection when returning from profile screen
+                if (mounted) setState(() => _selectedIndex = 0);
+              });
               break;
           }
         },

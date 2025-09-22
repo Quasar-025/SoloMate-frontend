@@ -21,6 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<dynamic> _userBadges = [];
   List<dynamic> _friends = [];
   List<dynamic> _journalEntries = [];
+  Map<String, List<Map<String, dynamic>>> _groupedJournalEntries = {};
   bool _isLoading = true;
   bool _isFollowing = false;
   bool _isLoadingJournal = false;
@@ -273,11 +274,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isLoadingJournal = true);
     
     try {
-      final response = await _apiService.getJournalEntries(limit: 20);
+      final response = await _apiService.getJournalEntries(limit: 50);
       
       if (mounted) {
+        final entries = response['entries'] ?? [];
+        
+        // Group entries by location/city
+        final Map<String, List<Map<String, dynamic>>> groupedEntries = {};
+        
+        for (final entry in entries) {
+          final location = entry['location'] ?? 'Unknown Location';
+          if (!groupedEntries.containsKey(location)) {
+            groupedEntries[location] = [];
+          }
+          groupedEntries[location]!.add(entry);
+        }
+        
+        // Sort entries within each city by date (newest first)
+        groupedEntries.forEach((city, cityEntries) {
+          cityEntries.sort((a, b) {
+            final dateA = DateTime.parse(a['date']);
+            final dateB = DateTime.parse(b['date']);
+            return dateB.compareTo(dateA);
+          });
+        });
+        
         setState(() {
-          _journalEntries = response['entries'] ?? [];
+          _journalEntries = entries;
+          _groupedJournalEntries = groupedEntries;
           _isLoadingJournal = false;
         });
       }
@@ -286,6 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() {
           _journalEntries = [];
+          _groupedJournalEntries = {};
           _isLoadingJournal = false;
         });
       }
@@ -751,7 +776,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    if (_journalEntries.isEmpty) {
+    if (_groupedJournalEntries.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -786,18 +811,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 1,
-        mainAxisSpacing: 12,
-        childAspectRatio: 3,
-      ),
-      itemCount: _journalEntries.length,
-      itemBuilder: (context, index) {
-        return _buildJournalCard(_journalEntries[index]);
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: _groupedJournalEntries.entries.map((cityEntry) {
+        final cityName = cityEntry.key;
+        final cityEntries = cityEntry.value;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // City header
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF9C88FF), Color(0xFF7B68EE)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    cityName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      fontFamily: 'gilroy',
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${cityEntries.length} ${cityEntries.length == 1 ? 'entry' : 'entries'}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        fontFamily: 'gilroy',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // City entries
+            ...cityEntries.map((entry) => 
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildJournalCard(entry),
+              ),
+            ).toList(),
+            
+            const SizedBox(height: 20),
+          ],
+        );
+      }).toList(),
     );
   }
 
@@ -1005,9 +1088,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final response = await _apiService.deleteJournalEntry(entryId);
       
       if (response['success'] == true) {
-        // Remove the entry from the local list
+        // Remove the entry from both the flat list and grouped entries
         setState(() {
           _journalEntries.removeWhere((entry) => entry['id'] == entryId);
+          
+          // Remove from grouped entries and clean up empty cities
+          _groupedJournalEntries.forEach((city, entries) {
+            entries.removeWhere((entry) => entry['id'] == entryId);
+          });
+          
+          // Remove cities with no entries
+          _groupedJournalEntries.removeWhere((city, entries) => entries.isEmpty);
         });
         
         if (mounted) {

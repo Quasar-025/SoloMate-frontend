@@ -78,6 +78,8 @@ class _MemoriesJournalCardState extends State<MemoriesJournalCard> {
           );
           _journalController.clear();
           setState(() {});
+          
+          // No need for navigation manipulation - profile will refresh when opened
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

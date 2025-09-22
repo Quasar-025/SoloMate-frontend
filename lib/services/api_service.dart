@@ -138,15 +138,6 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  // Quests API
-  Future<List<dynamic>> getQuests() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/quests/'),
-      headers: _headers,
-    );
-    return _handleResponse(response);
-  }
-
   Future<List<dynamic>> getNearbyQuests({double? lat, double? lng}) async {
     try {
       var uri = Uri.parse('$baseUrl/api/quests/nearby');
@@ -194,11 +185,49 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> startQuest(String questId) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/quests/$questId/start'),
-      headers: _headers,
-    );
-    return _handleResponse(response);
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/quests/$questId/start'),
+        headers: _headers,
+      );
+
+      print('Starting quest: $baseUrl/api/quests/$questId/start');
+      print('Request headers: $_headers');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 404) {
+        // Endpoint doesn't exist yet, simulate success
+        print('Start quest endpoint not implemented yet, simulating success');
+        return {
+          'success': true,
+          'message': 'Quest started successfully! (Mock response)',
+        };
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = jsonDecode(response.body);
+        print('Successfully started quest: $data');
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Quest started successfully!',
+          'data': data,
+        };
+      } else {
+        print('API Error: ${response.statusCode} - ${response.body}');
+        final errorData = jsonDecode(response.body);
+        return {
+          'success': false,
+          'error': errorData['detail'] ?? errorData['message'] ?? 'Failed to start quest',
+        };
+      }
+    } catch (e) {
+      print('Error starting quest: $e');
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
   }
 
   // Cities API
@@ -401,6 +430,9 @@ class ApiService {
   }
 
   // Journal API
+  // Add a static list to store entries in memory during app session
+  static final List<Map<String, dynamic>> _sessionJournalEntries = [];
+
   Future<Map<String, dynamic>> saveJournalEntry(Map<String, dynamic> entryData) async {
     try {
       final response = await http.post(
@@ -416,15 +448,31 @@ class ApiService {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 404) {
-        // Endpoint doesn't exist yet, simulate success
-        print('Journal endpoint not implemented yet, simulating success');
-        return {'success': true, 'message': 'Entry saved locally', 'id': DateTime.now().millisecondsSinceEpoch.toString()};
+        // Endpoint doesn't exist yet, simulate success and store locally
+        print('Journal endpoint not implemented yet, storing locally');
+        
+        final newEntry = {
+          ...entryData,
+          'id': DateTime.now().millisecondsSinceEpoch.toString(),
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+          'user_id': 'current_user',
+        };
+        
+        // Add to session storage
+        _sessionJournalEntries.insert(0, newEntry);
+        
+        return {
+          'success': true, 
+          'message': 'Entry saved successfully!', 
+          'id': newEntry['id'],
+          'data': newEntry,
+        };
       }
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final data = jsonDecode(response.body);
         print('Successfully saved journal entry: $data');
-        // Transform the API response to include success flag
         return {
           'success': true,
           'message': 'Journal entry saved successfully!',
@@ -483,12 +531,21 @@ class ApiService {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 404) {
-        // Endpoint doesn't exist yet, return mock data
-        print('Journal entries endpoint not implemented yet, using mock data');
+        // Endpoint doesn't exist yet, return combined mock + session data
+        print('Journal entries endpoint not implemented yet, using mock + session data');
+        
+        final allEntries = [
+          ..._sessionJournalEntries,
+          ..._getMockJournalEntries(),
+        ];
+        
+        // Apply limit if specified
+        final limitedEntries = limit != null ? allEntries.take(limit).toList() : allEntries;
+        
         return {
-          'entries': _getMockJournalEntries(),
-          'total': 3,
-          'has_more': false,
+          'entries': limitedEntries,
+          'total': allEntries.length,
+          'has_more': limit != null && allEntries.length > limit,
         };
       }
 
@@ -499,16 +556,16 @@ class ApiService {
       } else {
         print('API Error: ${response.statusCode} - ${response.body}');
         return {
-          'entries': _getMockJournalEntries(),
-          'total': 3,
+          'entries': [..._sessionJournalEntries, ..._getMockJournalEntries()],
+          'total': _sessionJournalEntries.length + _getMockJournalEntries().length,
           'has_more': false,
         };
       }
     } catch (e) {
       print('Error fetching journal entries: $e');
       return {
-        'entries': _getMockJournalEntries(),
-        'total': 3,
+        'entries': [..._sessionJournalEntries, ..._getMockJournalEntries()],
+        'total': _sessionJournalEntries.length + _getMockJournalEntries().length,
         'has_more': false,
       };
     }
@@ -557,12 +614,24 @@ class ApiService {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 404) {
-        // Endpoint doesn't exist yet, simulate success
-        print('Delete journal entry endpoint not implemented yet');
-        return {'success': true, 'message': 'Entry deleted locally'};
+        // Endpoint doesn't exist yet, try to remove from session storage
+        print('Delete journal entry endpoint not implemented yet, removing from session');
+        
+        // Check if entry exists before removing
+        final entryExists = _sessionJournalEntries.any((entry) => entry['id'] == entryId);
+        if (entryExists) {
+          _sessionJournalEntries.removeWhere((entry) => entry['id'] == entryId);
+        }
+        
+        return {
+          'success': true, 
+          'message': entryExists ? 'Entry deleted successfully' : 'Entry not found in session'
+        };
       }
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        // Also remove from session storage if it exists there
+        _sessionJournalEntries.removeWhere((entry) => entry['id'] == entryId);
         return {'success': true, 'message': 'Entry deleted successfully'};
       } else {
         print('API Error: ${response.statusCode} - ${response.body}');
@@ -591,7 +660,7 @@ class ApiService {
         'id': '2',
         'content': 'Peaceful morning walk by the beach. The sunrise was breathtaking.',
         'date': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-        'location': 'Kerala',
+        'location': 'Goa',
         'mood': 'peaceful',
         'tags': ['beach', 'sunrise', 'nature'],
         'created_at': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
@@ -607,6 +676,28 @@ class ApiService {
         'tags': ['history', 'architecture', 'culture'],
         'created_at': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
         'updated_at': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
+        'user_id': 'mock_user',
+      },
+      {
+        'id': '4',
+        'content': 'Incredible wildlife safari experience. Saw tigers in their natural habitat!',
+        'date': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+        'location': 'Kerala',
+        'mood': 'thrilled',
+        'tags': ['wildlife', 'safari', 'nature'],
+        'created_at': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+        'updated_at': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+        'user_id': 'mock_user',
+      },
+      {
+        'id': '5',
+        'content': 'Traditional dance performance was mesmerizing. The costumes and music were incredible.',
+        'date': DateTime.now().subtract(const Duration(days: 7)).toIso8601String(),
+        'location': 'Kerala',
+        'mood': 'amazed',
+        'tags': ['culture', 'dance', 'tradition'],
+        'created_at': DateTime.now().subtract(const Duration(days: 7)).toIso8601String(),
+        'updated_at': DateTime.now().subtract(const Duration(days: 7)).toIso8601String(),
         'user_id': 'mock_user',
       },
     ];
@@ -836,6 +927,243 @@ class ApiService {
       "search_center": {"latitude": 12.9204, "longitude": 79.1333},
       "radius_km": 2
     };
+  }
+
+  // Quests API - Enhanced methods
+  Future<List<dynamic>> getQuests({
+    String? cityId,
+    String? questType,
+    String? difficulty,
+    double? latitude,
+    double? longitude,
+    double? radiusKm,
+    int? userLevel,
+    bool availableOnly = true,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        if (cityId != null) 'city_id': cityId,
+        if (questType != null) 'quest_type': questType,
+        if (difficulty != null) 'difficulty': difficulty,
+        if (latitude != null) 'latitude': latitude.toString(),
+        if (longitude != null) 'longitude': longitude.toString(),
+        if (radiusKm != null) 'radius_km': radiusKm.toString(),
+        if (userLevel != null) 'user_level': userLevel.toString(),
+        'available_only': availableOnly.toString(),
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+      };
+
+      final uri = Uri.parse('$baseUrl/quests/').replace(
+        queryParameters: queryParams,
+      );
+
+      print('Fetching quests from: $uri');
+      print('Request headers: $_headers');
+
+      final response = await http.get(uri, headers: _headers);
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 404) {
+        print('Quests endpoint not found, using mock data');
+        return _getMockQuests(questType, difficulty);
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = jsonDecode(response.body);
+        print('Successfully fetched quests: $data');
+        return data is List ? data : [];
+      } else {
+        print('API Error: ${response.statusCode} - ${response.body}');
+        return _getMockQuests(questType, difficulty);
+      }
+    } catch (e) {
+      print('Error fetching quests: $e');
+      return _getMockQuests(questType, difficulty);
+    }
+  }
+
+  Future<Map<String, dynamic>> getQuestDetails(String questId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/quests/$questId'),
+        headers: _headers,
+      );
+
+      print('Fetching quest details from: $baseUrl/api/quests/$questId');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 404) {
+        throw Exception('Quest not found');
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = jsonDecode(response.body);
+        print('Successfully fetched quest details: $data');
+        return data;
+      } else {
+        print('API Error: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to fetch quest details');
+      }
+    } catch (e) {
+      print('Error fetching quest details: $e');
+      throw e;
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyQuestLocation({
+    required String questId,
+    required String questPointId,
+    required double latitude,
+    required double longitude,
+    double? accuracy,
+    Map<String, dynamic>? deviceInfo,
+    String? photoUrl,
+  }) async {
+    try {
+      final requestBody = {
+        'quest_point_id': questPointId,
+        'latitude': latitude,
+        'longitude': longitude,
+        if (accuracy != null) 'accuracy': accuracy,
+        if (deviceInfo != null) 'device_info': deviceInfo,
+        if (photoUrl != null) 'photo_url': photoUrl,
+      };
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/quests/$questId/verify-location'),
+        headers: _headers,
+        body: jsonEncode(requestBody),
+      );
+
+      print('Verifying quest location: $baseUrl/api/quests/$questId/verify-location');
+      print('Request body: ${jsonEncode(requestBody)}');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = jsonDecode(response.body);
+        print('Successfully verified quest location: $data');
+        return data;
+      } else {
+        print('API Error: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to verify quest location');
+      }
+    } catch (e) {
+      print('Error verifying quest location: $e');
+      throw e;
+    }
+  }
+
+  List<dynamic> _getMockQuests(String? questType, String? difficulty) {
+    final allMockQuests = [
+      {
+        'id': 'quest_1',
+        'title': 'Heritage Walk',
+        'description': 'Explore the historical monuments and learn about local culture',
+        'type': 'HERITAGE',
+        'difficulty': 'EASY',
+        'city_id': 'city_1',
+        'latitude': 12.9716,
+        'longitude': 77.5946,
+        'radius': 100,
+        'xp_reward': 50,
+        'token_reward': 10,
+        'required_level': 1,
+        'current_completions': 15,
+        'max_completions': 100,
+        'is_active': true,
+        'created_at': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+      },
+      {
+        'id': 'quest_2',
+        'title': 'Food Adventure',
+        'description': 'Discover hidden culinary gems and local street food',
+        'type': 'DAILY',
+        'difficulty': 'MEDIUM',
+        'city_id': 'city_1',
+        'latitude': 12.9716,
+        'longitude': 77.5946,
+        'radius': 200,
+        'xp_reward': 75,
+        'token_reward': 15,
+        'required_level': 2,
+        'current_completions': 8,
+        'max_completions': 50,
+        'is_active': true,
+        'created_at': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
+      },
+      {
+        'id': 'quest_3',
+        'title': 'Safety Challenge',
+        'description': 'Learn about local safety protocols and emergency services',
+        'type': 'SAFETY_CHALLENGE',
+        'difficulty': 'EASY',
+        'city_id': 'city_1',
+        'latitude': 12.9716,
+        'longitude': 77.5946,
+        'radius': 150,
+        'xp_reward': 100,
+        'token_reward': 20,
+        'required_level': 1,
+        'current_completions': 12,
+        'max_completions': 75,
+        'is_active': true,
+        'created_at': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+      },
+      {
+        'id': 'quest_4',
+        'title': 'Hidden Gems Explorer',
+        'description': 'Find secret spots that only locals know about',
+        'type': 'HIDDEN_GEMS',
+        'difficulty': 'HARD',
+        'city_id': 'city_1',
+        'latitude': 12.9716,
+        'longitude': 77.5946,
+        'radius': 300,
+        'xp_reward': 150,
+        'token_reward': 30,
+        'required_level': 5,
+        'current_completions': 3,
+        'max_completions': 25,
+        'is_active': true,
+        'created_at': DateTime.now().subtract(const Duration(hours: 12)).toIso8601String(),
+      },
+      {
+        'id': 'quest_5',
+        'title': 'Community Picks',
+        'description': 'Visit places recommended by fellow travelers',
+        'type': 'COMMUNITY_PICKS',
+        'difficulty': 'MEDIUM',
+        'city_id': 'city_1',
+        'latitude': 12.9716,
+        'longitude': 77.5946,
+        'radius': 250,
+        'xp_reward': 80,
+        'token_reward': 18,
+        'required_level': 3,
+        'current_completions': 22,
+        'max_completions': 60,
+        'is_active': true,
+        'created_at': DateTime.now().subtract(const Duration(hours: 6)).toIso8601String(),
+      },
+    ];
+
+    // Filter by quest type and difficulty
+    return allMockQuests.where((quest) {
+      if (questType != null && questType != 'ALL' && quest['type'] != questType) {
+        return false;
+      }
+      if (difficulty != null && difficulty != 'ALL' && quest['difficulty'] != difficulty) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 
   dynamic _handleResponse(http.Response response) {
