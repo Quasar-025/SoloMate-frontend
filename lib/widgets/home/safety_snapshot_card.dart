@@ -79,27 +79,25 @@ class SafetySnapshotCard extends StatelessWidget {
                               fontFamily: 'gilroy',
                             ),
                           ),
-                          // Keep existing SOS button
-                          NeuContainer(
-                            color: Colors.red,
+                          // Convert to NeuTextButton with navigation
+                          NeuTextButton(
+                            enableAnimation: true,
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/safety');
+                            },
+                            buttonColor: Colors.red,
                             borderColor: Colors.black,
                             borderWidth: 3,
                             borderRadius: BorderRadius.circular(30),
-                            child: InkWell(
-                              onTap: () {},
-                              child: Container(
-                                width: 60,
-                                height: 60,
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'SOS',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                    fontFamily: 'gilroy',
-                                  ),
-                                ),
+                            buttonHeight: 60,
+                            buttonWidth: 60,
+                            text: const Text(
+                              'SOS',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                                fontFamily: 'gilroy',
                               ),
                             ),
                           ),
@@ -221,3 +219,4 @@ class SafetySnapshotCard extends StatelessWidget {
     );
   }
 }
+

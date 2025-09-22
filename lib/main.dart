@@ -10,6 +10,7 @@ import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/auth/get_started_screen.dart';
 import 'screens/quest_screen.dart';
+import 'screens/safety_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +72,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         // '/safety': (context) => const SafetyScreen(),
         '/quest': (context) => const QuestScreen(),
+        '/safety': (context) => const SafetyScreen(),
       },
     );
   }
