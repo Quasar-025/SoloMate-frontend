@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/api_service.dart';
 import '../../services/location_service.dart';
 
@@ -313,15 +314,7 @@ class _NearbyExploreCardState extends State<NearbyExploreCard> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: InkWell(
-              onTap: () {
-                // TODO: Implement navigation functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Navigate to $name'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
+              onTap: () => _navigateToPlace(name),
               child: Text(
                 action,
                 style: const TextStyle(
@@ -335,5 +328,149 @@ class _NearbyExploreCardState extends State<NearbyExploreCard> {
         ],
       ),
     );
+  }
+
+  Future<void> _navigateToPlace(String placeName) async {
+    try {
+      // Find the place data for coordinates
+      final place = _nearbyPlaces.firstWhere(
+        (p) => p['name'] == placeName,
+        orElse: () => null,
+      );
+
+      if (place != null && place['latitude'] != null && place['longitude'] != null) {
+        // Use coordinates if available
+        final lat = place['latitude'];
+        final lng = place['longitude'];
+        await _launchMaps(lat, lng, placeName);
+      } else {
+        // Fallback to search by name
+        if (_currentPosition != null) {
+          final currentLat = _currentPosition!.latitude;
+          final currentLng = _currentPosition!.longitude;
+          await _launchMapsSearch(placeName, currentLat, currentLng);
+        } else {
+          await _launchMapsSearch(placeName);
+        }
+      }
+    } catch (e) {
+      print('Error opening maps: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening maps: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _launchMaps(double lat, double lng, String placeName) async {
+    // Try multiple approaches in order of preference
+    final List<String> attempts = [
+      // Google Maps app with coordinates
+      'google.navigation:q=$lat,$lng',
+      // Generic geo intent
+      'geo:$lat,$lng?q=$lat,$lng(${Uri.encodeComponent(placeName)})',
+      // Google Maps web with coordinates
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+      // Fallback web URL
+      'https://maps.google.com/?q=$lat,$lng',
+    ];
+
+    for (String urlString in attempts) {
+      try {
+        final uri = Uri.parse(urlString);
+        print('Trying to launch: $urlString');
+        
+        // For the first two attempts (app intents), try to launch directly
+        if (urlString.startsWith('google.navigation:') || urlString.startsWith('geo:')) {
+          try {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            print('Successfully launched: $urlString');
+            return; // Success, exit the function
+          } catch (e) {
+            print('Failed to launch $urlString: $e');
+            continue; // Try next option
+          }
+        } else {
+          // For web URLs, check if they can be launched first
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            print('Successfully launched: $urlString');
+            return; // Success, exit the function
+          }
+        }
+      } catch (e) {
+        print('Error with URL $urlString: $e');
+        continue;
+      }
+    }
+
+    // If all attempts failed, show error
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not open maps. Please install Google Maps or another maps app.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _launchMapsSearch(String placeName, [double? lat, double? lng]) async {
+    final List<String> attempts = [
+      // Google Maps app search
+      if (lat != null && lng != null)
+        'google.navigation:q=${Uri.encodeComponent(placeName)}&center=$lat,$lng',
+      // Generic geo search
+      if (lat != null && lng != null)
+        'geo:$lat,$lng?q=${Uri.encodeComponent(placeName)}',
+      // Google Maps web search
+      if (lat != null && lng != null)
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(placeName)}&center=$lat,$lng',
+      // Simple search without location
+      'geo:0,0?q=${Uri.encodeComponent(placeName)}',
+      'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(placeName)}',
+      'https://maps.google.com/?q=${Uri.encodeComponent(placeName)}',
+    ];
+
+    for (String urlString in attempts) {
+      try {
+        final uri = Uri.parse(urlString);
+        print('Trying to launch search: $urlString');
+        
+        if (urlString.startsWith('google.navigation:') || urlString.startsWith('geo:')) {
+          try {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            print('Successfully launched search: $urlString');
+            return;
+          } catch (e) {
+            print('Failed to launch search $urlString: $e');
+            continue;
+          }
+        } else {
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            print('Successfully launched search: $urlString');
+            return;
+          }
+        }
+      } catch (e) {
+        print('Error with search URL $urlString: $e');
+        continue;
+      }
+    }
+
+    // If all attempts failed
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not open maps. Please install Google Maps or another maps app.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

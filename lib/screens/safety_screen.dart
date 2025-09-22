@@ -327,8 +327,9 @@ class _SafetyScreenState extends State<SafetyScreen> {
               borderColor: Colors.black,
               borderWidth: 3,
               borderRadius: BorderRadius.circular(20),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+              child: Container(
+                width: double.infinity, // Add this to ensure full width
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20), // Increase horizontal padding
                 child: Column(
                   children: [
                     const Text(
@@ -348,12 +349,14 @@ class _SafetyScreenState extends State<SafetyScreen> {
                             borderColor: Colors.black,
                             borderWidth: 2,
                             borderRadius: BorderRadius.circular(10),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            child: Container(
+                              width: double.infinity, // Make index display full width
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               child: Text(
                                 _safetyIndex != null
                                     ? '${_safetyIndex!.toStringAsFixed(0)}/100'
                                     : '--/100',
+                                textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
@@ -363,21 +366,24 @@ class _SafetyScreenState extends State<SafetyScreen> {
                             ),
                           ),
                     const SizedBox(height: 12),
-                    NeuTextButton(
-                      enableAnimation: true,
-                      onPressed: _fetchSafetyIndex,
-                      buttonColor: Colors.black,
-                      borderColor: Colors.black,
-                      borderWidth: 2,
-                      borderRadius: BorderRadius.circular(10),
-                      buttonHeight: 40,
-                      text: Text(
-                        _safetyStatus.isNotEmpty ? _safetyStatus : 'Check Safety',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontFamily: 'gilroy',
+                    SizedBox(
+                      width: double.infinity, // Make button full width
+                      child: NeuTextButton(
+                        enableAnimation: true,
+                        onPressed: _fetchSafetyIndex,
+                        buttonColor: Colors.black,
+                        borderColor: Colors.black,
+                        borderWidth: 2,
+                        borderRadius: BorderRadius.circular(10),
+                        buttonHeight: 45,
+                        text: Text(
+                          _safetyStatus.isNotEmpty ? _safetyStatus : 'Check Safety',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontFamily: 'gilroy',
+                          ),
                         ),
                       ),
                     ),
@@ -847,12 +853,13 @@ class _SafetyScreenState extends State<SafetyScreen> {
           ),
           child: Icon(faceIcon, color: Colors.black, size: 40),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 24), // Increased from 12 to 24
         // Gauge
         CustomPaint(
           size: const Size(200, 100),
           painter: _SafetyGaugePainter(index: index),
         ),
+        const SizedBox(height: 16), // Add bottom spacing
       ],
     );
   }
