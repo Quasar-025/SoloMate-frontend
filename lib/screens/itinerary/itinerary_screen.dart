@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:neubrutalism_ui/neubrutalism_ui.dart';
+import 'itinerary_detail_screen.dart';
 
 class ItineraryScreen extends StatelessWidget {
   final Map<String, dynamic>? itineraryData;
@@ -95,7 +96,7 @@ class ItineraryScreen extends StatelessWidget {
                     final slot = slots[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
-                      child: _buildItineraryItem(slot),
+                      child: _buildItineraryItem(context, slot),
                     );
                   },
                 ),
@@ -108,93 +109,137 @@ class ItineraryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildItineraryItem(Map<String, dynamic> slot) {
-    return NeuContainer(
-      color: Colors.white,
-      borderColor: Colors.black,
-      borderWidth: 3,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${slot['start_time']} - ${slot['end_time']}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'gilroy',
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getDifficultyColor(slot['difficulty']),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    slot['difficulty'] ?? 'Normal',
+  Widget _buildItineraryItem(BuildContext context, Map<String, dynamic> slot) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItineraryDetailScreen(itineraryItem: slot),
+        ),
+      ),
+      child: NeuContainer(
+        color: Colors.white,
+        borderColor: Colors.black,
+        borderWidth: 3,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${slot['start_time']} - ${slot['end_time']}',
                     style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                       fontFamily: 'gilroy',
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              slot['title'] ?? 'Activity',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'gilroy',
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              slot['description'] ?? '',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-                fontFamily: 'gilroy',
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                if (slot['weather_dependent'] == true) ...[
-                  const Icon(Icons.wb_sunny, size: 16),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Weather dependent',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'gilroy',
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getDifficultyColor(slot['difficulty']),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      slot['difficulty'] ?? 'Normal',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white,
+                        fontFamily: 'gilroy',
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
                 ],
-                const Icon(Icons.access_time, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  slot['estimated_duration'] ?? '',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontFamily: 'gilroy',
-                  ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                slot['title'] ?? 'Activity',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'gilroy',
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                slot['description'] ?? '',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontFamily: 'gilroy',
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      if (slot['weather_dependent'] == true) ...[
+                        const Icon(Icons.wb_sunny, size: 16),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Weather dependent',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: 'gilroy',
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                      ],
+                      const Icon(Icons.access_time, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        slot['estimated_duration'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'gilroy',
+                        ),
+                      ),
+                    ],
+                  ),
+                  NeuContainer(
+                    color: const Color(0xFFFAA3DB),
+                    borderColor: Colors.black,
+                    borderWidth: 2,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ItineraryDetailScreen(
+                              itineraryItem: slot,
+                            ),
+                          ),
+                        ),
+                        child: const Text(
+                          'Read More',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                            fontFamily: 'gilroy',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
