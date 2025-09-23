@@ -400,7 +400,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Stack(
         children: [
-          // Background with mountain illustration
+          // Background with user profile image
           NeuContainer(
             color: const Color(0xFFB19CD9),
             borderColor: Colors.black,
@@ -411,14 +411,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 200,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(17),
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFB19CD9), Color(0xFF9B7EBD)],
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/userprofilebg.png'),
+                  fit: BoxFit.cover,
                 ),
-              ),
-              child: CustomPaint(
-                painter: MountainPainter(),
               ),
             ),
           ),
@@ -1177,5 +1173,9 @@ class MountainPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+
 
 
