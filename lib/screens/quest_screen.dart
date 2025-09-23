@@ -18,12 +18,14 @@ class _QuestScreenState extends State<QuestScreen> {
   
   List<dynamic> _nearbyQuests = [];
   List<dynamic> _allQuests = [];
+  List<dynamic> _itineraryTimeSlots = [];
   Map<String, dynamic>? _userStats;
   bool _isLoading = true;
   bool _isLocationDetected = false;
   String _selectedFilter = 'ALL';
   String _selectedDifficulty = 'ALL';
   String? _currentLocation;
+  Map<String, dynamic>? _lastItinerary; // Store last itinerary for fallback
 
   final List<String> _questTypes = ['ALL', 'DAILY', 'WEEKLY', 'HERITAGE', 'HIDDEN_GEMS', 'SAFETY_CHALLENGE', 'COMMUNITY_PICKS'];
   final List<String> _difficulties = ['ALL', 'EASY', 'MEDIUM', 'HARD', 'EXTREME'];
@@ -92,37 +94,50 @@ class _QuestScreenState extends State<QuestScreen> {
 
   Future<void> _loadQuests() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final position = await _locationService.getCurrentPosition();
-      
-      // Load nearby quests if location is available
-      if (position != null) {
-        final nearbyQuests = await _apiService.getNearbyQuests(
-          lat: position.latitude,
-          lng: position.longitude,
+      String cityName = _currentLocation ?? 'Your City';
+      List<dynamic> aiQuests = [];
+      List<dynamic> itineraryTimeSlots = [];
+      Map<String, dynamic>? lastItinerary;
+
+      // Always use AI itinerary endpoint for quests
+      if (position != null && cityName.isNotEmpty) {
+        final now = DateTime.now();
+        const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        final formattedDate = '${weekdays[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
+
+        final aiResponse = await _apiService.generateItinerary(
+          cityName: cityName,
+          date: formattedDate,
+          latitude: position.latitude,
+          longitude: position.longitude,
+          additionalData: {
+            "generate_quests": true,
+            "auto_save": false,
+          },
         );
-        
-        setState(() {
-          _nearbyQuests = nearbyQuests;
-        });
+
+        if (aiResponse != null) {
+          if (aiResponse['generated_quests'] != null && aiResponse['generated_quests'] is List) {
+            aiQuests = aiResponse['generated_quests'];
+          }
+          if (aiResponse['itinerary'] != null && aiResponse['itinerary']['time_slots'] is List) {
+            itineraryTimeSlots = aiResponse['itinerary']['time_slots'];
+            lastItinerary = aiResponse['itinerary'];
+          }
+        }
       }
 
-      // Load all quests with filters
-      final allQuests = await _apiService.getQuests(
-        questType: _selectedFilter != 'ALL' ? _selectedFilter : null,
-        difficulty: _selectedDifficulty != 'ALL' ? _selectedDifficulty : null,
-        userLevel: _userStats?['level'],
-        latitude: position?.latitude,
-        longitude: position?.longitude,
-      );
-
-      if (mounted) {
-        setState(() {
-          _allQuests = allQuests;
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _nearbyQuests = aiQuests;
+        _allQuests = [];
+        _itineraryTimeSlots = itineraryTimeSlots;
+        _lastItinerary = lastItinerary;
+        _isLoading = false;
+      });
     } catch (e) {
       print('Error loading quests: $e');
       if (mounted) {
@@ -607,8 +622,9 @@ class _QuestScreenState extends State<QuestScreen> {
   }
 
   Widget _buildQuestsList() {
-    final questsToShow = _nearbyQuests.isNotEmpty ? _nearbyQuests : _allQuests;
-    
+    // Only use AI-generated quests or itinerary time_slots
+    List<dynamic> questsToShow = _nearbyQuests.isNotEmpty ? _nearbyQuests : _itineraryTimeSlots;
+
     if (questsToShow.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(32),
@@ -648,7 +664,9 @@ class _QuestScreenState extends State<QuestScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _nearbyQuests.isNotEmpty ? 'Nearby Quests' : 'All Quests',
+          _nearbyQuests.isNotEmpty
+              ? 'Recommended Quests'
+              : 'Today\'s Itinerary',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -662,6 +680,21 @@ class _QuestScreenState extends State<QuestScreen> {
   }
 
   Widget _buildQuestCard(Map<String, dynamic> quest) {
+    // Support both quest and itinerary time_slot structure
+    final String title = quest['title'] ?? 'Quest';
+    final String description = quest['description'] ?? 'Explore and discover amazing places!';
+    final String difficulty = quest['difficulty']?.toString().toUpperCase() ?? 'EASY';
+    final String type = quest['type'] ?? quest['activity_type'] ?? 'DAILY';
+    final int xpReward = quest['xp_reward'] ?? 0;
+    final int requiredLevel = quest['required_level'] ?? 1;
+    final int currentCompletions = quest['current_completions'] ?? 0;
+    final int maxCompletions = quest['max_completions'] ?? 0;
+    final String time = (quest['start_time'] != null && quest['end_time'] != null)
+        ? '${quest['start_time']} - ${quest['end_time']}'
+        : '';
+    final String estimatedDuration = quest['estimated_duration'] ?? '';
+    final bool weatherDependent = quest['weather_dependent'] ?? false;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: NeuContainer(
@@ -679,7 +712,7 @@ class _QuestScreenState extends State<QuestScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      quest['title'] ?? 'Quest',
+                      title,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -690,11 +723,11 @@ class _QuestScreenState extends State<QuestScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getDifficultyColor(quest['difficulty']),
+                      color: _getDifficultyColor(difficulty),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      quest['difficulty'] ?? 'EASY',
+                      difficulty,
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -707,7 +740,7 @@ class _QuestScreenState extends State<QuestScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                quest['description'] ?? 'Explore and discover amazing places!',
+                description,
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
@@ -717,33 +750,70 @@ class _QuestScreenState extends State<QuestScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 12),
+              if (time.isNotEmpty || estimatedDuration.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                  child: Row(
+                    children: [
+                      if (time.isNotEmpty)
+                        Text(
+                          time,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                            fontFamily: 'gilroy',
+                          ),
+                        ),
+                      if (estimatedDuration.isNotEmpty) ...[
+                        if (time.isNotEmpty) const SizedBox(width: 8),
+                        Text(
+                          estimatedDuration,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                            fontFamily: 'gilroy',
+                          ),
+                        ),
+                      ],
+                      if (weatherDependent) ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.wb_cloudy, size: 14, color: Colors.orange),
+                      ],
+                    ],
+                  ),
+                ),
               Wrap(
                 children: [
-                  _buildQuestInfo(Icons.star, '${quest['xp_reward'] ?? 0} XP'),
+                  _buildQuestInfo(Icons.star, '$xpReward XP'),
                   const SizedBox(width: 16),
-                  _buildQuestInfo(Icons.access_time, quest['type'] ?? 'DAILY'),
-                  const SizedBox(width: 16),
-                  if (quest['required_level'] != null)
-                    _buildQuestInfo(Icons.trending_up, 'Lvl ${quest['required_level']}'),
+                  _buildQuestInfo(Icons.access_time, type),
+                  if (quest['required_level'] != null) ...[
+                    const SizedBox(width: 16),
+                    _buildQuestInfo(Icons.trending_up, 'Lvl $requiredLevel'),
+                  ],
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Completions: ${quest['current_completions'] ?? 0}/${quest['max_completions'] ?? '∞'}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        fontFamily: 'gilroy',
-                      ),
+              if (quest['current_completions'] != null && quest['max_completions'] != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'Completions: $currentCompletions/$maxCompletions',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                      fontFamily: 'gilroy',
                     ),
                   ),
+                ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Spacer(),
                   NeuTextButton(
                     enableAnimation: true,
-                    onPressed: () => _startQuest(quest['id']),
+                    onPressed: quest['id'] != null
+                        ? () => _startQuest(quest['id'])
+                        : null,
                     buttonColor: const Color(0xFF4ECDC4),
                     borderColor: Colors.black,
                     borderWidth: 2,
@@ -862,3 +932,4 @@ class _QuestScreenState extends State<QuestScreen> {
     );
   }
 }
+          
