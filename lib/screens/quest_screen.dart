@@ -803,37 +803,46 @@ class _QuestScreenState extends State<QuestScreen> {
         onTap: (index) {
           switch (index) {
             case 0:
-              // Home
               Navigator.pop(context);
               break;
             case 1:
               // Quests - already here
               break;
             case 2:
-              // Safety
-              Navigator.pushReplacementNamed(context, '/safety');
+              Navigator.pushReplacementNamed(context, '/trip_planner');
               break;
             case 3:
-              // Profile
+              Navigator.pushReplacementNamed(context, '/safety');
+              break;
+            case 4:
               Navigator.pushReplacementNamed(context, '/profile');
               break;
           }
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
+            icon: Icon(Icons.map_outlined),
+            activeIcon: Icon(Icons.map),
             label: 'Quests',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.security),
+            icon: Icon(Icons.edit_calendar_outlined),
+            activeIcon: Icon(Icons.edit_calendar),
+            label: 'Plan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.security_outlined),
+            activeIcon: Icon(Icons.security),
             label: 'Safety',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
