@@ -1174,8 +1174,5 @@ class MountainPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-
 
 
