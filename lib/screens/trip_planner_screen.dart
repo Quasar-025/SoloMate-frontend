@@ -204,36 +204,42 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             const SizedBox(height: 16),
             
             // Search Bar
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: TextField(
+            Row(
+              children: [
+                Expanded(
+                  child: NeuContainer(
+                    color: Colors.white,
+                    borderColor: Colors.black,
+                    borderWidth: 3,
+                    borderRadius: BorderRadius.circular(12),
+                    child: const TextField(
                       decoration: InputDecoration(
                         hintText: 'Search destinations',
                         prefixIcon: Icon(Icons.search, color: Colors.grey),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       ),
                       style: TextStyle(fontFamily: 'gilroy'),
                     ),
                   ),
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
+                ),
+                const SizedBox(width: 12),
+                NeuContainer(
+                  color: Colors.white,
+                  borderColor: Colors.black,
+                  borderWidth: 3,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    child: const Icon(
+                      Icons.tune,
                       color: Colors.black,
-                      borderRadius: BorderRadius.circular(20),
+                      size: 24,
                     ),
-                    child: const Icon(Icons.tune, color: Colors.white, size: 20),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             
