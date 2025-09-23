@@ -128,7 +128,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadAdditionalData() async {
     try {
       final userStats = await _apiService.getUserStats();
-      final nearbyQuests = await _apiService.getNearbyQuests();
+      // Optionally get current position for nearby quests
+      final position = await _locationService.getCurrentPosition();
+      List<dynamic> nearbyQuests;
+      if (position != null) {
+        nearbyQuests = await _apiService.getNearbyQuests(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          radiusKm: 5,
+          limit: 10,
+        );
+      } else {
+        nearbyQuests = await _apiService.getNearbyQuests();
+      }
       
       if (mounted) {
         setState(() {

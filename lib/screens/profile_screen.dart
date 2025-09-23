@@ -882,10 +882,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildNFTContent() {
     final List<Map<String, String>> nftImages = [
-      {'image': 'assets/images/CultureQuest.jpg', 'title': 'Culture Quest'},
-      {'image': 'assets/images/bg_auth.gif', 'title': 'Adventure Quest'},
-      {'image': 'assets/images/itinerary_detail_bg.jpg', 'title': 'Nature Quest'},
-      {'image': 'assets/images/bg_profile.png', 'title': 'Urban Quest'},
+      {'image': 'assets/images/culture.png', 'title': 'Culture Quest'},
+      {'image': 'assets/images/deepsea.png', 'title': 'Deep Sea Diver'},
+      {'image': 'assets/images/night.png', 'title': 'Night Owl Quest'},
+      {'image': 'assets/images/star.png', 'title': 'Star Gazer'},
     ];
 
     return GridView.builder(
@@ -1173,6 +1173,4 @@ class MountainPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
-
-
-
+a894acf24f8329033697672003e5dee4c0c0b562

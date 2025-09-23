@@ -138,14 +138,19 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  Future<List<dynamic>> getNearbyQuests({double? lat, double? lng}) async {
+  Future<List<dynamic>> getNearbyQuests({double? latitude, double? longitude, double? radiusKm, int? limit}) async {
     try {
       var uri = Uri.parse('$baseUrl/api/quests/nearby');
-      if (lat != null && lng != null) {
-        uri = uri.replace(queryParameters: {'lat': lat.toString(), 'lng': lng.toString()});
+      final queryParams = <String, String>{};
+      if (latitude != null) queryParams['latitude'] = latitude.toString();
+      if (longitude != null) queryParams['longitude'] = longitude.toString();
+      if (radiusKm != null) queryParams['radius_km'] = radiusKm.toString();
+      if (limit != null) queryParams['limit'] = limit.toString();
+      if (queryParams.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParams);
       }
       final response = await http.get(uri, headers: _headers);
-      
+
       if (response.statusCode == 404 || response.statusCode == 500) {
         // Return mock data if endpoint doesn't exist or fails
         return [
@@ -356,17 +361,17 @@ class ApiService {
     Map<String, dynamic>? additionalData,
   }) async {
     try {
-      final queryParams = <String, String>{
+      // Prepare the request body as required by the backend
+      final body = {
         'city_name': cityName,
         if (date != null) 'date': date,
-        if (latitude != null) 'latitude': latitude.toString(),
-        if (longitude != null) 'longitude': longitude.toString(),
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+        if (additionalData != null) ...additionalData,
       };
 
-      // Use the working base URL from Postman
-      final uri = Uri.parse('$baseUrl/ai/generate-itinerary').replace(
-        queryParameters: queryParams,
-      );
+      // Use the correct endpoint without query parameters
+      final uri = Uri.parse('$baseUrl/ai/generate-itinerary');
 
       // Match the exact headers from Postman
       final headers = {
@@ -376,12 +381,12 @@ class ApiService {
 
       print('Making itinerary request to: $uri');
       print('Headers: $headers');
-      print('Query params: $queryParams');
+      print('Body: $body');
 
       final response = await http.post(
         uri,
         headers: headers,
-        body: jsonEncode({}), // Empty JSON body as in Postman
+        body: jsonEncode(body),
       );
 
       print('Response status: ${response.statusCode}');
@@ -1002,22 +1007,35 @@ class ApiService {
     int offset = 0,
   }) async {
     try {
-      final queryParams = <String, String>{
-        if (cityId != null) 'city_id': cityId,
-        if (questType != null) 'quest_type': questType,
-        if (difficulty != null) 'difficulty': difficulty,
-        if (latitude != null) 'latitude': latitude.toString(),
-        if (longitude != null) 'longitude': longitude.toString(),
-        if (radiusKm != null) 'radius_km': radiusKm.toString(),
-        if (userLevel != null) 'user_level': userLevel.toString(),
-        'available_only': availableOnly.toString(),
-        'limit': limit.toString(),
-        'offset': offset.toString(),
-      };
+      Uri uri;
+      Map<String, String> queryParams = {};
 
-      final uri = Uri.parse('$baseUrl/quests/').replace(
-        queryParameters: queryParams,
-      );
+      // If latitude and longitude are provided, use the /api/quests/nearby endpoint
+      if (latitude != null && longitude != null) {
+        uri = Uri.parse('$baseUrl/quests/nearby');
+        queryParams['latitude'] = latitude.toString();
+        queryParams['longitude'] = longitude.toString();
+        if (radiusKm != null) queryParams['radius_km'] = radiusKm.toString();
+        if (limit != null) queryParams['limit'] = limit.toString();
+        // Optionally add other filters if needed
+      } else {
+        // Otherwise, use the generic /quests/ endpoint
+        uri = Uri.parse('$baseUrl/quests/');
+        if (cityId != null) queryParams['city_id'] = cityId;
+        if (questType != null) queryParams['quest_type'] = questType;
+        if (difficulty != null) queryParams['difficulty'] = difficulty;
+        if (latitude != null) queryParams['latitude'] = latitude.toString();
+        if (longitude != null) queryParams['longitude'] = longitude.toString();
+        if (radiusKm != null) queryParams['radius_km'] = radiusKm.toString();
+        if (userLevel != null) queryParams['user_level'] = userLevel.toString();
+        queryParams['available_only'] = availableOnly.toString();
+        queryParams['limit'] = limit.toString();
+        queryParams['offset'] = offset.toString();
+      }
+
+      if (queryParams.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParams);
+      }
 
       print('Fetching quests from: $uri');
       print('Request headers: $_headers');
