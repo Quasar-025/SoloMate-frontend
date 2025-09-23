@@ -7,6 +7,7 @@ import '../services/location_service.dart';
 import '../screens/profile_screen.dart';
 import '../screens/safety_screen.dart';
 import '../screens/quest_screen.dart';
+import '../screens/trip_planner_screen.dart';
 import '../widgets/common/home_header.dart';
 import '../widgets/home/weather_card.dart';
 import '../widgets/home/checklist_card.dart';
@@ -297,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          if (index == _selectedIndex) return; // Don't navigate if already on the same tab
+          if (index == _selectedIndex) return;
           
           setState(() => _selectedIndex = index);
           switch (index) {
@@ -310,27 +311,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 context,
                 MaterialPageRoute(builder: (context) => const QuestScreen()),
               ).then((_) {
-                // Reset selection when returning from quest screen
                 if (mounted) setState(() => _selectedIndex = 0);
               });
               break;
             case 2:
+              // Trip Planner
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TripPlannerScreen()),
+              ).then((_) {
+                if (mounted) setState(() => _selectedIndex = 0);
+              });
+              break;
+            case 3:
               // Safety
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SafetyScreen()),
               ).then((_) {
-                // Reset selection when returning from safety screen
                 if (mounted) setState(() => _selectedIndex = 0);
               });
               break;
-            case 3:
+            case 4:
               // Profile
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               ).then((_) {
-                // Reset selection when returning from profile screen
                 if (mounted) setState(() => _selectedIndex = 0);
               });
               break;
@@ -338,19 +345,28 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
+            icon: Icon(Icons.map_outlined),
+            activeIcon: Icon(Icons.map),
             label: 'Quests',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.security),
+            icon: Icon(Icons.edit_calendar_outlined),
+            activeIcon: Icon(Icons.edit_calendar),
+            label: 'Plan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.security_outlined),
+            activeIcon: Icon(Icons.security),
             label: 'Safety',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],

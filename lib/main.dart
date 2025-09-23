@@ -11,6 +11,7 @@ import 'screens/profile_screen.dart';
 import 'screens/auth/get_started_screen.dart';
 import 'screens/quest_screen.dart';
 import 'screens/safety_screen.dart';
+import 'screens/trip_planner_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,9 +71,9 @@ class MyApp extends StatelessWidget {
         '/ai_preferences': (context) => const AIPreferencesScreen(),
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
-        // '/safety': (context) => const SafetyScreen(),
-        '/quest': (context) => const QuestScreen(),
+        '/trip_planner': (context) => const TripPlannerScreen(),
         '/safety': (context) => const SafetyScreen(),
+        '/quest': (context) => const QuestScreen(),
       },
     );
   }
